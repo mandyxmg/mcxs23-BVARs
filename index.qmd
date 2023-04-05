@@ -12,11 +12,254 @@ bibliography: references.bib
 >
 > **Keywords.** Bayesian VARs, inflation 
 
-# Introduction
+## Objectives & Motivations
 
+Since post pandemic, the inflation in Australia has increased largely, reaching at 7.8% per annual reported in the December quarter of 2022, becoming the highest rate in over 30 years from the speech of the [Australian Financial Review Business Summit](https://www.rba.gov.au/speeches/2023/sp-gov-2023-03-08.html#:~:text=In%20the%20December%20quarter%2C%20the,in%20more%20than%20three%20decades.). Given a high inflation can have negative impact in many aspects, such as reducing the consumer's purchasing power, and changing spending behaviour and investment decisions, it is not only a problem that every central bank should pay attention to dealing with in order to achieve the price stability and the sustainable economic growth, but also should each one of us get to know how it will evolve in the future as it relates closely to our daily living standard.
 
+The objective of this research project is to apply Bayesian VARs model to analyse the dynamic relationships of the inflation and three other economic variables so as to eventually forecast the time ahead inflation.
 
+The questions to address is "what's the inflation in the next two years, and how soon the current inflation can return to the annual target, that is, 2 to 3 per cent in Australia?".
 
+## Data & Data Properties
 
+```{r library}
+#| echo: false
+#| message: false
+#| warning: false
+
+library(readabs)
+library(readrba)
+library(readxl)
+library(httr)
+library(openxlsx)
+library(lubridate)
+library(TSstudio)
+library(xts)
+```
+
+The Consumer Price Index (CPI) is a well-known indicator of inflation, hence applied in the model to quantify it.
+
+To forecast the inflation (or CPI), three other economic variables are proposed in the model for interaction, namely,
+
+-   the Cash Rate of the Reserve Bank of Australia (RBA),
+
+-   the Consumer Sentiment Index from the Westpac-Melbourne Institute, and
+
+-   the Wage Price Index from the Australian Bureau of Statistics (ABS).
+
+Firstly, the Cash Rate is proposed given it's a means of the Monetary Policy having been used to control and target the inflation.
+
+Secondly, according to the [RBA](https://www.rba.gov.au/education/resources/explainers/causes-of-inflation.html) , demand-pull, inflation expectations and cost-push are three broad categories causing the inflation. Therefore,the [Consumer Sentiment Index](https://melbourneinstitute.unimelb.edu.au/publications/macroeconomic-reports) indicating the consumer confidence level changes in the economic activity is proposed as a proxy measurement of the demand-pull and inflation expectation; and the Wage Price Index measuring the total hourly pay rate changes for all Australian industries is proposed to analyse how inflation varies from the perspective of the cost-push.
+
+The 4 variables are transformed into a consistent format for analysis, in which each single data point is representing the percentage change from corresponding quarter of the previous year. Below lists out examples on how to interpret the data.
+
+>*CPI*: at the December quarter of 2022, the annual CPI compared to the corresponding quarter of previous year increased 7.8%.
+
+```{r inflation rate}
+#| echo: false
+#| message: false
+#| warning: false
+
+# Percentage Change from Corresponding Quarter of Previous Year 
+# All groups CPI, Australia
+# Annual rate, quarterly data 
+cpi_dwnld             = read_abs(series_id = "A2325847F")     
+cpi                   = data.frame(xts::xts(cpi_dwnld$value, cpi_dwnld$date))
+cpi$Date              = row.names(cpi)
+cpi                   = data.frame(cpi$Date, cpi$xts..xts.cpi_dwnld.value..cpi_dwnld.date.)  # create a dataframe
+colnames(cpi)         = c("Date", "CPI")
+cpi$Date              = as.Date(as.character(cpi$Date))
+cpi_tmp               = cpi
+tail(cpi_tmp,2)
+# plot(cpi_tmp, type = "l")
+```
+
+> *Cash Rate*: at the December quarter of 2022, the annual cash rate compared to the corresponding quarter of previous year is added on (increased) 270 basis points.
+
+```{r cash rate}
+#| echo: false
+#| message: false
+#| warning: false
+
+# Cash Rate Target
+# Annual rate, daily data
+#To preserve the convention of reporting cash rate changes, that is, adding or subtracting basis points, the quarterly cash rate is calculated by subtracting the quarter average cash rate of corresponding quarter of previous year from the current year.
+cashr_dwnld           = read_rba(series_id = "FIRMMCRTD")   
+cashr                 = data.frame(xts::xts(cashr_dwnld$value, cashr_dwnld$date))
+q_avg_cashr           = as.xts(apply.quarterly(cashr,mean))  # get a quarter average figure
+q_avg_cashr$ROD       = round(q_avg_cashr - lag(q_avg_cashr,4),1)  # calculate quarterly difference
+q_avg_cashr           = data.frame(q_avg_cashr)
+q_avg_cashr$Date      = floor_date(as.Date(as.character(row.names(q_avg_cashr))),"month")  # adjust date to first day of each month to match cpi table
+cashr_tmp             = data.frame(q_avg_cashr$Date, q_avg_cashr$ROD)  # create a dataframe
+colnames(cashr_tmp)   = c("Date", "Cash_Rate")
+cashr_tmp[131:132,]
+# plot(cashr_tmp, type = "l")
+```
+
+>*Consumer Sentiment Index*: at the December quarter of 2022, the annual consumer sentiment index compared to the corresponding quarter of previous year decreased 23.0%. 
+
+```{r consumer sentiment index}
+#| echo: false
+#| message: false
+#| warning: false
+
+# Percentage Change from Corresponding Quarter of Previous Year 
+# Consumer Sentiment Index 
+csenti_link           = "https://www.rba.gov.au/statistics/tables/xls/h03hist.xls"
+get                   = GET(csenti_link, write_disk(df <- tempfile(fileext = ".xls")))
+csenti_download       = read_excel(df)
+a                     = csenti_download[1]
+b                     = csenti_download[7]
+c                     = na.omit(data.frame(a,b))[-c(1:8),]
+colnames(c)           = c("Date", "Consumer_Sentiment_Index")
+c$Date                = convertToDateTime(c$Date, origin = "1900-01-01")
+c$Consumer_Sentiment_Index = as.numeric(as.character(c$Consumer_Sentiment_Index))  # this row above are all about wrangling data
+quarter_avg           = as.xts(apply.quarterly(c,mean))  # get a quarter average figure
+quarter_avg$ROR       = round((quarter_avg$x / lag(quarter_avg$x,4)-1)*100,1)  # calculate quarterly return
+quarter_avg           = data.frame(quarter_avg)
+quarter_avg$Date      = floor_date(as.Date(as.character(row.names(quarter_avg))), "month")  # adjust date to first day of each month to match cpi table
+csenti_tmp            = data.frame(quarter_avg$Date, quarter_avg$ROR)  # create a dataframe
+colnames(csenti_tmp)  = c("Date", "Consumer_Sentiment_Index")
+csenti_tmp[51:52,]
+# plot(csenti_tmp, type = "l")
+```
+
+>*Wage Price Index*: at the December quarter of 2022, the annual wage price index compared to the corresponding quarter of previous year increased 3.5%.
+
+```{r wage price}
+#| echo: false
+#| message: false
+#| warning: false
+
+# Percentage Change from Corresponding Quarter of Previous Year
+# Total hourly rates of pay including bonuses 
+# Australia, Private and Public, All industries 
+# Annual rate, quarterly data 
+wage_dwnld           = read_abs(series_id = "A2615581R")
+wage                 = data.frame(xts::xts(wage_dwnld$value, wage_dwnld$date))
+wage$Date            = row.names(wage)
+wage                 = data.frame(wage$Date, wage$xts..xts.wage_dwnld.value..wage_dwnld.date.)  # create a dataframe
+colnames(wage)       = c("Date", "Hr_Wage")
+wage$Date            = as.Date(as.character(wage$Date))
+wage_tmp             = wage
+tail(wage_tmp,2)
+# plot(wage_tmp, type = "l")
+```
+
+A time series plot is displayed below to visualize how the 4 proposed variables vary throughout the past 12 years starting from March 2011 to December 2022. 
+
+```{r all variables plot}
+#| echo: false
+#| message: false
+#| warning: false
+
+##combine all 4 variables in a dataframe. 
+combine1             = merge(cpi_tmp, cashr_tmp)
+combine2             = merge(combine1, csenti_tmp)
+variables_all        = merge(combine2, wage_tmp)[-c(1:4),]  # merge all 4 variables in to 1 dataframe
+colnames(variables_all) = c("Date", "CPI", "Cash Rate", "Consumer Senti", "Hr Wages")
+ts_plot(variables_all,
+        type = "multiple", title = FALSE,
+        Xgrid = TRUE
+)
+
+# plot.variables_all = variables_all[2:5]
+# plot.ts(plot.variables_all,
+#        mar.multi = c(0, 10, 0, 10),
+#        oma.multi = c(0, 0, 0, 0), axes = TRUE
+#        )
+
+```
+
+According to the tendency, they are non stationary with time-varying volatility. Here are some findings,  
+
+-   All 4 variables tend to be stable from 2014 to 2020, during which periods, the CPI remains around the target level 2-3 percent, hence no large and active monetary policy is observed given the fact that the cash rate is flat out around 0. In addition, under the stable economy environment, consumers' views of the economy don't shift much, staying around 0 as well.
+
+-   After 2020, when entering into the post pandemic it introduces large volatility. With inflation starting to rise, the cash rate has some lagging reaction. The large increase of cash rate happened at the time when the inflation is already peaked. This makes sense as the current economic condition is one of the consideration that the RBA adjust the monetary policy. Interestingly, consumers tend to have strong confidence on the economy when the inflation begins to rise, and gradually lose the confidence when the inflation rises way too high. It is reasonable to see how people adjust their views based on the new economic information they receive and perceive. Wage level, however, looks to be more consistent with the increasing in inflation, which may also be understandable in the way that wage as a cost-push to inflation would interact with it more closely. Wage cost pushes up inflation, and in turn high inflation results in even more rising in the wage demand in order to match up with the basic living standard.
+
+A combined autocorrelation plot is presented to view the correlations statistically. 
+
+It is clear that each variable shows some statistical significance in correlating with its own lags and with other variables. 
+
+```{r all variable acf}
+#| echo: false
+#| message: false
+#| warning: false
+
+acf(variables_all[2:5])
+```
+
+Overall, the proposed variables are linked and can explain each other in some way. They have different dynamics, economic sense and interactions with the inflation, therefore it would be appropriate to include them in the model to answer the research question.
+
+## Model and Hypotheses
+
+The basic model equation we will build up on throughout the research project is stated below with the error terms specified in the matrix-variate normal distribution, which includes a T x 4 dimension mean, a 4 x 4 dimension row specific covariance matrix and a T dimension identity matrix referring to the column specified covariance. 
+
+- Y is a T x 4 matrix representing the 4 variables introduced in the model as explained previously and each variable spreading out to T periods. 
+
+- X is a T x (1+4P) matrix with T referring to the periods of time and (1+4P) referring to the 4 variables, each of which has p lags in the VAR system. 
+
+- A is a (1+4P) x 4 matrix with 1+4P corresponding to every coefficient in the referring variable. 
+
+- E is a T x 4 matrix referring to the error term in each of the equation.
+
+The red and blue highlights in the matrices expressions are giving visualized examples on how the system works and how each of the elements links and multiplies together.
+
+```{=tex}
+\begin{align}
+Y &= XA + E \\
+\end{align}
+```
+```{=tex}
+\begin{align}
+E |X  &\sim MN_{T \times 4 } (\textbf{0}_{T\times 4}, \Sigma , I_{T}) \\
+\end{align}
+```
+```{=tex}
+\begin{align}
+Y= \begin{bmatrix}
+\color{Red} y_{1,1} &y_{1,2}  & y_{1,3} & y_{1,4}\\
+y_{2,1} &  y_{2,2} & y_{2,3} & y_{2,4}\\
+y_{3,1} & \color{Cyan}y_{3,2}  & y_{3,3} & y_{3,4}\\
+\vdots  &\vdots   & \vdots  & \vdots \\
+y_{t,1} &y_{t,2}  & y_{t,3} & y_{t,4}\\
+\end{bmatrix}
+\end{align}
+```
+```{=tex}
+\begin{align}
+X = \begin{bmatrix}
+\color{Red} 1 & \color{Red} y_{1,1, t-1} & \color{Red}\cdots & \color{Red}y_{1,1, t-p}, & \color{Red}y_{1,2, t-1} &\color{Red}\cdots & \color{Red}y_{1,2, t-p}, & \color{Red}y_{1,3, t-1} &\color{Red}\cdots & \color{Red}y_{1,3, t-p},& \color{Red}y_{1,4, t-1} & \color{Red}\cdots & \color{Red}y_{1,4, t-p}\\
+1 & y_{2,1, t-1} &\cdots & y_{2,1, t-p} ,& y_{2,2, t-1} &\cdots & y_{2,2, t-p}, & y_{2,3, t-1} &\cdots & y_{2,3, t-p},& y_{2,4, t-1} &\cdots & y_{2,4, t-p}\\
+\color{Cyan}1 & \color{Cyan} y_{3,1, t-1} & \color{Cyan}\cdots & \color{Cyan} y_{3,1, t-p}, &\color{Cyan} y_{3,2, t-1} &\color{Cyan}\cdots & \color{Cyan}y_{3,2, t-p}, &\color{Cyan} y_{3,3, t-1} &\color{Cyan}\cdots &\color{Cyan} y_{3,3, t-p},&\color{Cyan} y_{3,4, t-1} &\color{Cyan}\cdots &\color{Cyan} y_{3,4, t-p}\\
+\vdots  &\vdots   & \vdots  & \vdots &\vdots   & \vdots  & \vdots   &\vdots   & \vdots  & \vdots   &\vdots   & \vdots  & \vdots  \\
+1 & y_{t,1, t-1} &\cdots & y_{t,1, t-p}, & y_{t,2, t-1} &\cdots & y_{t,2, t-p}, & y_{t,3, t-1} &\cdots & y_{t,3, t-p},& y_{t,4, t-1} &\cdots & y_{t,4, t-p}\\
+\end{bmatrix} \\
+\end{align}
+```
+```{=tex}
+\begin{align}
+A = \begin{bmatrix}
+\color{Red}\mu_{0,1} &\color{Cyan}\mu_{0,2}   & \mu_{0,3}  & \mu_{0,4} \\
+\color{Red}a_{1, t-1} &\color{Cyan}a_{1, t-1}  & a_{1, t-1} & a_{1, t-1}\\
+\color{Red}\vdots  &\color{Cyan}\vdots   & \vdots  & \vdots \\
+\color{Red}a_{1, t-p} &\color{Cyan}a_{1, t-p}  & a_{1, t-p} & a_{1, t-p}\\
+\color{Red}\vdots  &\color{Cyan}\vdots   & \vdots  & \vdots \\
+\color{Red}\vdots  &\color{Cyan}\vdots   & \vdots  & \vdots \\
+\color{Red}a_{4, t-1} &\color{Cyan}a_{4, t-1}  & a_{4, t-1} & a_{4, t-1}\\\displaystyle 
+\color{Red}\vdots  &\color{Cyan}\vdots   & \vdots  & \vdots \\
+\color{Red}a_{4, t-p} &\color{Cyan}a_{4, t-p}  & a_{4, t-p} & a_{4,t-p}\\
+\end{bmatrix}
+
+E= \begin{bmatrix}
+\color{Red} \epsilon_{1,1} &\epsilon_{1,2}  & \epsilon_{1,3} & \epsilon_{1,4}\\
+\epsilon_{2,1} &  \epsilon_{2,2} & \epsilon_{2,3} & \epsilon_{2,4}\\
+\epsilon_{3,1} & \color{Cyan}\epsilon_{3,2}  & \epsilon_{3,3} & \epsilon_{3,4}\\
+\vdots  &\vdots   & \vdots  & \vdots \\
+\epsilon_{t,1} &\epsilon_{t,2}  & \epsilon_{t,3} &\epsilon_{t,4}\\
+\end{bmatrix}
+\end{align}
+```
+In the on-going research work, we will apply different variations and extensions on the current model based on the nature of the data. We will generate the distributions of the unknown parameters, and interpret and conduct inference and forecasting on it. Specifically, we will generate the estimated coefficients A, and the variances. The estimated A will be useful to understand the Granger causality on whether one variable is useful to explain our interested variable inflation. The estimated variance will be useful to apply in the h-step forecast, such as, building confidence interval to give an idea on how the future quarter inflation is going to evolve. More details will be elaborated on the continued work.
 
 ## References {.unnumbered}
