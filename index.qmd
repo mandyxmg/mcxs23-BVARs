@@ -49,7 +49,7 @@ To forecast the inflation (or CPI), three other economic variables are proposed 
 
 Firstly, the Cash Rate is proposed given it's a means of the Monetary Policy having been used to control and target the inflation.
 
-Secondly, according to the [RBA](https://www.rba.gov.au/education/resources/explainers/causes-of-inflation.html) , demand-pull, inflation expectations and cost-push are three broad categories causing the inflation. Therefore,the [Consumer Sentiment Index](https://melbourneinstitute.unimelb.edu.au/publications/macroeconomic-reports) indicating the consumer confidence level changes in the economic activity is proposed as a proxy measurement of the demand-pull and inflation expectation. In addition, the Wage Price Index measuring the total hourly pay rate changes for all Australian industries is proposed to analyse how inflation varies from the perspective of the cost-push.
+Secondly, according to the [RBA](https://www.rba.gov.au/education/resources/explainers/causes-of-inflation.html) , demand-pull, inflation expectations and cost-push are three broad categories causing the inflation. Therefore, the [Consumer Sentiment Index](https://melbourneinstitute.unimelb.edu.au/publications/macroeconomic-reports) indicating the consumer confidence level changes in the economic activity is proposed as a proxy measurement of the demand-pull and inflation expectation. In addition, the Wage Price Index measuring the total hourly pay rate changes for all Australian industries is proposed to analyse how inflation varies from the perspective of the cost-push.
 
 The 4 variables are transformed into a consistent format for analysis, in which each single data point is representing the percentage change from corresponding quarter of the previous year. Below lists out examples on how to interpret the data.
 
@@ -260,6 +260,8 @@ E= \begin{bmatrix}
 \end{bmatrix}
 \end{align}
 ```
-As the research work goes, we will add on different variations and extensions on top of the current model based on the nature of the data and research possibilities. We will generate the distributions of the unknown parameters, and interpret and conduct inference and forecasting on it. Specifically, we will generate the estimated coefficients A, and the variances. The estimated A will be useful to understand the Granger causality as of whether one variable is useful to explain our interested variable inflation. The estimated variance will be useful to apply in the h-step forecast, such as, building confidence interval to give an idea on how the future quarter inflation is going to evolve. More details will be elaborated on the continued work.
+As the research work goes, we will add on different variations and extensions on top of the current model based on the nature of the data and research possibilities. We will generate the distributions of the unknown parameters, and interpret and conduct inference and forecasting on it. Specifically, we will generate the estimated coefficients A, and the variances. The estimated A will be useful to understand the Granger causality as of whether one variable is useful to explain our interested variable inflation. The estimated variance will be useful to apply in the h-step forecast, such as, building confidence interval to give an idea on how the future quarter inflation is going to evolve. 
+
+More details will be elaborated on the continued work.
 
 ## References {.unnumbered}
