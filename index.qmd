@@ -1,5 +1,5 @@
 ---
-title: "Bayesian VARs Application: Inflation Rate Forecasts"
+title: "Bayesian VARs Application: Forecast on Inflation"
 author: "Xiaoman Guo"
 
 execute:
