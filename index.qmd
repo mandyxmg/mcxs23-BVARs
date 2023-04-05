@@ -8,13 +8,13 @@ execute:
 bibliography: references.bib
 ---
 
-> **Abstract.** 
->
-> **Keywords.** Bayesian VARs, inflation 
+> **Abstract.** This reseach project is motivated by the prevailing high inflation environment post pandemic, aiming to investigate and forecast how inflation will evolve over time under the applicaion of the Bayesian VARs. 
+
+> **Keywords.** Bayesian VARs, inflation, forecasting
 
 ## Objectives & Motivations
 
-Since post pandemic, the inflation in Australia has increased largely, reaching at 7.8% per annual reported in the December quarter of 2022, becoming the highest rate in over 30 years from the speech of the [Australian Financial Review Business Summit](https://www.rba.gov.au/speeches/2023/sp-gov-2023-03-08.html#:~:text=In%20the%20December%20quarter%2C%20the,in%20more%20than%20three%20decades.). Given a high inflation can have negative impact in many aspects, such as reducing the consumer's purchasing power, and changing spending behaviour and investment decisions, it is not only a problem that every central bank should pay attention to dealing with in order to achieve the price stability and the sustainable economic growth, but also should each one of us get to know how it will evolve in the future as it relates closely to our daily living standard.
+Since post pandemic, the inflation in Australia has increased largely, reaching at 7.8% per annual reported in the December quarter of 2022, becoming the highest rate in over 30 years from the speech of the [Australian Financial Review Business Summit](https://www.rba.gov.au/speeches/2023/sp-gov-2023-03-08.html#:~:text=In%20the%20December%20quarter%2C%20the,in%20more%20than%20three%20decades.). Given a high inflation can have negative impact in many aspects, such as reducing the consumer's purchasing power, and changing spending behaviour and investment decisions, it is not only a problem that every central bank is now aiming to deal with in order to achieve the price stability and the sustainable economic growth, but also can each one of us get to know how it will evolve in the future as it relates closely to our daily life.
 
 The objective of this research project is to apply Bayesian VARs model to analyse the dynamic relationships of the inflation and three other economic variables so as to eventually forecast the time ahead inflation.
 
@@ -49,7 +49,7 @@ To forecast the inflation (or CPI), three other economic variables are proposed 
 
 Firstly, the Cash Rate is proposed given it's a means of the Monetary Policy having been used to control and target the inflation.
 
-Secondly, according to the [RBA](https://www.rba.gov.au/education/resources/explainers/causes-of-inflation.html) , demand-pull, inflation expectations and cost-push are three broad categories causing the inflation. Therefore,the [Consumer Sentiment Index](https://melbourneinstitute.unimelb.edu.au/publications/macroeconomic-reports) indicating the consumer confidence level changes in the economic activity is proposed as a proxy measurement of the demand-pull and inflation expectation; and the Wage Price Index measuring the total hourly pay rate changes for all Australian industries is proposed to analyse how inflation varies from the perspective of the cost-push.
+Secondly, according to the [RBA](https://www.rba.gov.au/education/resources/explainers/causes-of-inflation.html) , demand-pull, inflation expectations and cost-push are three broad categories causing the inflation. Therefore,the [Consumer Sentiment Index](https://melbourneinstitute.unimelb.edu.au/publications/macroeconomic-reports) indicating the consumer confidence level changes in the economic activity is proposed as a proxy measurement of the demand-pull and inflation expectation. In addition, the Wage Price Index measuring the total hourly pay rate changes for all Australian industries is proposed to analyse how inflation varies from the perspective of the cost-push.
 
 The 4 variables are transformed into a consistent format for analysis, in which each single data point is representing the percentage change from corresponding quarter of the previous year. Below lists out examples on how to interpret the data.
 
@@ -173,9 +173,9 @@ ts_plot(variables_all,
 
 According to the tendency, they are non stationary with time-varying volatility. Here are some findings,  
 
--   All 4 variables tend to be stable from 2014 to 2020, during which periods, the CPI remains around the target level 2-3 percent, hence no large and active monetary policy is observed given the fact that the cash rate is flat out around 0. In addition, under the stable economy environment, consumers' views of the economy don't shift much, staying around 0 as well.
+-   All 4 variables tend to be stable from 2014 to 2020, during which periods, the CPI remains around the target level 2-3 per cent, hence no large and active monetary policy is observed given the fact that the cash rate is flat out around 0. In addition, under the stable economy condition, consumers' views of the economy don't shift much, staying around 0 as well.
 
--   After 2020, when entering into the post pandemic it introduces large volatility. With inflation starting to rise, the cash rate has some lagging reaction. The large increase of cash rate happened at the time when the inflation is already peaked. This makes sense as the current economic condition is one of the consideration that the RBA adjust the monetary policy. Interestingly, consumers tend to have strong confidence on the economy when the inflation begins to rise, and gradually lose the confidence when the inflation rises way too high. It is reasonable to see how people adjust their views based on the new economic information they receive and perceive. Wage level, however, looks to be more consistent with the increasing in inflation, which may also be understandable in the way that wage as a cost-push to inflation would interact with it more closely. Wage cost pushes up inflation, and in turn high inflation results in even more rising in the wage demand in order to match up with the basic living standard.
+-   After 2020, when entering into the post pandemic it starts to introduce large volatility. As the inflation rises, the cash rate shows some lagging reaction. The large increase of cash rate happened at the time when the inflation is already peaked. This makes sense as the current economic condition is one of the considerations for the monetary policy. Interestingly, consumers tend to have strong confidence on the economy when the inflation begins to rise, and gradually lose the confidence when the inflation rises way too high. It is reasonable to see how people adjust their views based on the new economic information they receive and perceive. Wage level, however, looks to be more consistent with the increasing in inflation, which may also be understandable in the way that wage as a cost-push would interact with the inflation more closely. Wage cost pushes up inflation, and in turn high inflation results in even more rising in the wage demand in order to match up with the basic living standard.
 
 A combined autocorrelation plot is presented to view the correlations statistically. 
 
@@ -189,11 +189,11 @@ It is clear that each variable shows some statistical significance in correlatin
 acf(variables_all[2:5])
 ```
 
-Overall, the proposed variables are linked and can explain each other in some way. They have different dynamics, economic sense and interactions with the inflation, therefore it would be appropriate to include them in the model to answer the research question.
+Overall, the proposed variables are linked and can explain each other in some way. They have different dynamics, economic sense and interactions with the inflation, therefore it would be appropriate to include them all in the model to answer the research question.
 
 ## Model and Hypotheses
 
-The basic model equation we will build up on throughout the research project is stated below with the error terms specified in the matrix-variate normal distribution, which includes a T x 4 dimension mean, a 4 x 4 dimension row specific covariance matrix and a T dimension identity matrix referring to the column specified covariance. 
+The basic model equation we will build upon throughout the research project is stated below with the error terms specified in the matrix-variate normal distribution, which includes a T x 4 dimension mean, a 4 x 4 dimension row specific covariance matrix and a T dimension identity matrix referring to the column specified covariance. 
 
 - Y is a T x 4 matrix representing the 4 variables introduced in the model as explained previously and each variable spreading out to T periods. 
 
@@ -260,6 +260,6 @@ E= \begin{bmatrix}
 \end{bmatrix}
 \end{align}
 ```
-In the on-going research work, we will apply different variations and extensions on the current model based on the nature of the data. We will generate the distributions of the unknown parameters, and interpret and conduct inference and forecasting on it. Specifically, we will generate the estimated coefficients A, and the variances. The estimated A will be useful to understand the Granger causality on whether one variable is useful to explain our interested variable inflation. The estimated variance will be useful to apply in the h-step forecast, such as, building confidence interval to give an idea on how the future quarter inflation is going to evolve. More details will be elaborated on the continued work.
+As the research work goes, we will add on different variations and extensions on top of the current model based on the nature of the data and research possibilities. We will generate the distributions of the unknown parameters, and interpret and conduct inference and forecasting on it. Specifically, we will generate the estimated coefficients A, and the variances. The estimated A will be useful to understand the Granger causality as of whether one variable is useful to explain our interested variable inflation. The estimated variance will be useful to apply in the h-step forecast, such as, building confidence interval to give an idea on how the future quarter inflation is going to evolve. More details will be elaborated on the continued work.
 
 ## References {.unnumbered}
