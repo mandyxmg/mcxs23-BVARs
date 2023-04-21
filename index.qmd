@@ -35,6 +35,7 @@ library(openxlsx)
 library(lubridate)
 library(TSstudio)
 library(xts)
+library(formattable)
 ```
 
 The Consumer Price Index (CPI) is a well-known indicator of inflation, hence applied in the model to quantify it.
@@ -53,7 +54,7 @@ Secondly, according to the [RBA](https://www.rba.gov.au/education/resources/expl
 
 The 4 variables are transformed into a consistent format for analysis, in which each single data point is representing the percentage change from corresponding quarter of the previous year. Below lists out examples on how to interpret the data.
 
->*CPI*: at the December quarter of 2022, the annual CPI compared to the corresponding quarter of previous year increased 7.8%.
+
 
 ```{r inflation rate}
 #| echo: false
@@ -70,11 +71,10 @@ cpi                   = data.frame(cpi$Date, cpi$xts..xts.cpi_dwnld.value..cpi_d
 colnames(cpi)         = c("Date", "CPI")
 cpi$Date              = as.Date(as.character(cpi$Date))
 cpi_tmp               = cpi
-tail(cpi_tmp,2)
+#tail(cpi_tmp,2)
 # plot(cpi_tmp, type = "l")
 ```
 
-> *Cash Rate*: at the December quarter of 2022, the annual cash rate compared to the corresponding quarter of previous year is added on (increased) 270 basis points.
 
 ```{r cash rate}
 #| echo: false
@@ -92,11 +92,11 @@ q_avg_cashr           = data.frame(q_avg_cashr)
 q_avg_cashr$Date      = floor_date(as.Date(as.character(row.names(q_avg_cashr))),"month")  # adjust date to first day of each month to match cpi table
 cashr_tmp             = data.frame(q_avg_cashr$Date, q_avg_cashr$ROD)  # create a dataframe
 colnames(cashr_tmp)   = c("Date", "Cash_Rate")
-cashr_tmp[131:132,]
+#cashr_tmp[131:132,]
 # plot(cashr_tmp, type = "l")
 ```
 
->*Consumer Sentiment Index*: at the December quarter of 2022, the annual consumer sentiment index compared to the corresponding quarter of previous year decreased 23.0%. 
+
 
 ```{r consumer sentiment index}
 #| echo: false
@@ -120,11 +120,11 @@ quarter_avg           = data.frame(quarter_avg)
 quarter_avg$Date      = floor_date(as.Date(as.character(row.names(quarter_avg))), "month")  # adjust date to first day of each month to match cpi table
 csenti_tmp            = data.frame(quarter_avg$Date, quarter_avg$ROR)  # create a dataframe
 colnames(csenti_tmp)  = c("Date", "Consumer_Sentiment_Index")
-csenti_tmp[51:52,]
+#csenti_tmp[51:52,]
 # plot(csenti_tmp, type = "l")
 ```
 
->*Wage Price Index*: at the December quarter of 2022, the annual wage price index compared to the corresponding quarter of previous year increased 3.5%.
+
 
 ```{r wage price}
 #| echo: false
@@ -142,9 +142,29 @@ wage                 = data.frame(wage$Date, wage$xts..xts.wage_dwnld.value..wag
 colnames(wage)       = c("Date", "Hr_Wage")
 wage$Date            = as.Date(as.character(wage$Date))
 wage_tmp             = wage
-tail(wage_tmp,2)
+#tail(wage_tmp,2)
 # plot(wage_tmp, type = "l")
+
+#put all data frames into list
+df_list <- list(cpi_tmp, cashr_tmp, csenti_tmp, wage_tmp)
+
+#merge all data frames in list
+merge = Reduce(function(x, y) merge(x, y, all=TRUE), df_list)
+
+final = merge[merge$Date == c('2022-09-01','2022-12-01'),]
+rownames(final) = c()
+colnames(final) = c('Quarter', 'CPI', 'Cash Rate', 'Consumer Sentiment', 'Hourly Wage')
+formattable(final)
+
+
 ```
+>*CPI*: at the December quarter of 2022, the annual CPI compared to the corresponding quarter of previous year increased 7.8%.
+
+> *Cash Rate*: at the December quarter of 2022, the annual cash rate compared to the corresponding quarter of previous year is added on (increased) 270 basis points.
+
+>*Consumer Sentiment Index*: at the December quarter of 2022, the annual consumer sentiment index compared to the corresponding quarter of previous year decreased 23.0%. 
+
+>*Wage Price Index*: at the December quarter of 2022, the annual wage price index compared to the corresponding quarter of previous year increased 3.5%.
 
 A time series plot is displayed below to visualize how the 4 proposed variables vary throughout the past 12 years starting from March 2011 to December 2022. 
 
