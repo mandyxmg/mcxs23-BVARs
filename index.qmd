@@ -149,9 +149,9 @@ wage_tmp             = wage
 df_list <- list(cpi_tmp, cashr_tmp, csenti_tmp, wage_tmp)
 
 #merge all data frames in list
-merge = Reduce(function(x, y) merge(x, y, all=TRUE), df_list)
+variables_all = Reduce(function(x, y) merge(x, y, all=TRUE), df_list)
 
-final = merge[merge$Date == c('2022-09-01','2022-12-01'),]
+final = variables_all[variables_all$Date == c('2022-09-01','2022-12-01'),]
 rownames(final) = c()
 colnames(final) = c('Quarter', 'CPI', 'Cash Rate', 'Consumer Sentiment', 'Hourly Wage')
 formattable(final)
@@ -173,12 +173,10 @@ A time series plot is displayed below to visualize how the 4 proposed variables 
 #| message: false
 #| warning: false
 
-##combine all 4 variables in a dataframe. 
-combine1             = merge(cpi_tmp, cashr_tmp)
-combine2             = merge(combine1, csenti_tmp)
-variables_all        = merge(combine2, wage_tmp)[-c(1:4),]  # merge all 4 variables in to 1 dataframe
+
 colnames(variables_all) = c("Date", "CPI", "Cash Rate", "Consumer Senti", "Hr Wages")
-ts_plot(variables_all,
+
+ts_plot(na.omit(variables_all),
         type = "multiple", title = FALSE,
         Xgrid = TRUE
 )
@@ -206,7 +204,7 @@ It is clear that each variable shows some statistical significance in correlatin
 #| message: false
 #| warning: false
 
-acf(variables_all[2:5])
+acf(na.omit(variables_all)[,2:5])
 ```
 
 Overall, the proposed variables are linked and can explain each other in some way. They have different dynamics, economic sense and interactions with the inflation, therefore it would be appropriate to include them all in the model to answer the research question.
