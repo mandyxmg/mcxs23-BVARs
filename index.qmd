@@ -1,8 +1,11 @@
 ---
-title: "Bayesian VARs Application: Forecast on Inflation"
-author: "Xiaoman Guo"
-
-
+title: "Bayesian VARs Application: Inflation Rate Forecasts"
+author: 
+  - name: "Xiaoman Guo"
+format:
+  html:
+    toc: true
+    toc-location: left
 bibliography: references.bib
 ---
 
