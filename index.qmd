@@ -110,7 +110,7 @@ ts_plot(na.omit(variables_all), type = "multiple", title = FALSE, Xgrid = TRUE)
 The autocorrelation plot is presented below. It is clear that each variable shows some statistical significance in lag 1 indicating the random walk process.
 
 ```{r all variable acf}
-#| echo: false
+#| echo: true
 #| message: false
 #| warning: false
 acf(variables_all[,1])
