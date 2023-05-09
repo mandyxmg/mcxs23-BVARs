@@ -9,6 +9,7 @@ format:
 bibliography: references.bib
 ---
 
+
 > **Abstract.** This reseach project is motivated by the prevailing high inflation environment post pandemic, aiming to investigate and forecast how inflation will evolve over time under the applicaion of the Bayesian VARs.
 
 > **Keywords.** Bayesian VARs, inflation, forecasting
@@ -110,7 +111,7 @@ ts_plot(na.omit(variables_all), type = "multiple", title = FALSE, Xgrid = TRUE)
 The autocorrelation plot is presented below. It is clear that each variable shows some statistical significance in lag 1 indicating the random walk process.
 
 ```{r all variable acf}
-#| echo: true
+#| echo: false
 #| message: false
 #| warning: false
 acf(variables_all[,1])
@@ -218,6 +219,9 @@ p(\Sigma|Y,X)&\sim IW_{N}(\overline{S}, \overline{v})
 The above steps are summarised in the below code to generate the sample draws from the joint posterior distribution.
 
 ```{r function based on basic model}
+#| echo: true
+#| message: false
+#| warning: false
 ## Present data X, Y
 y = ts(variables_all[,1:4])
 Y = ts(y[5:nrow(y),], frequency=4)
@@ -291,34 +295,51 @@ p(\Sigma) &\sim IW_{N}(\underline{S},\underline{v})\\
 p(k) &\sim IG2(\underline{S_{k}}, \underline{v_{k}} ) \\ 
 \end{align}
 ```
+
 We multiply the corresponding distribution probability density functions (i.e. pdf) of $L(Y,X|A,\Sigma)p(A|\Sigma, k)p(\Sigma)p(k)$, the kennel of the posterior distribution is written as below.
+
+1. The kennel of the fully conditional posterior distribution of $A$ and $\Sigma$ is as below.
 
 ```{=tex}
 \begin{align}
-p(A,\Sigma, k |Y,X) &\propto \det(\Sigma)^{-\frac{T+N+K+\underline{v}+1}{2}} \\
-&\times \exp\left\{ -\frac{1}{2} TR[\Sigma^{-1}[(A-\overline{A})'\overline{V}^{-1}(A-\overline{A})+\underline{S}+Y'Y+\underline{A}'(k\underline{V})^{-1}\underline{A}-\overline{A}'\overline{V}^{-1}\overline{A}]  ] \right\} \\
-&\times k^{-\frac{\underline{v_{k}}+2}{2}} \exp\left\{ -\frac{1}{2}\frac{\underline{S_{k}}}{k} \right\}\\
+p(A,\Sigma |Y,X, k) &\propto L(Y,X|A,\Sigma)p(A |\Sigma, k)p(\Sigma) \\
+&\propto \det(\Sigma)^{-\frac{T+N+K+\underline{v}+1}{2}} \\
+&\exp\left\{ -\frac{1}{2} TR[\Sigma^{-1}[(A-\overline{A})'\overline{V}^{-1}(A-\overline{A})+\underline{S}+Y'Y+\underline{A}'(k\underline{V})^{-1}\underline{A}-\overline{A}'\overline{V}^{-1}\overline{A}]  ] \right\} \\
 \end{align}
 ```
-The derivation is performed on each posterior parameter. The resulting equation is presented below.
+
+2. The kennel of the fully conditional posterior distribution of $k$ is as below.
+
+```{=tex}
+\begin{align}
+p(k |Y,X,A,\Sigma ) &\propto L(Y,X|A,\Sigma)p(A,\Sigma, k)\\
+&\propto L(Y,X|A,\Sigma)p(A |\Sigma, k)p(\Sigma)p(k) \\
+&\propto p(A |\Sigma, k)p(k) 
+\end{align}
+```
+
+```{=tex}
+\begin{align}
+p(k |Y,X,A,\Sigma ) &\propto \det(k\underline{V})^{-\frac{N}{2}}\exp\left\{-\frac{1}{2}TR[\Sigma^{-1}(\underline{A}-\underline{A})'\frac{\underline{V}^{-1}}{k}(\underline{A}-\underline{A})] \right\} k^{-\frac{\underline{v_{k}+2}}{2}}\exp\left\{ -\frac{1}{2}\frac{\underline{S_{k}}}{k} \right\} \\
+& = k^{-\frac{kN+\underline{v_{k}+2}}{2}}\exp\left\{-\frac{1}{2}\frac{TR[\Sigma^{-1}(\underline{A}-\underline{A})'\frac{\underline{V}^{-1}}{k}(\underline{A}-\underline{A})]+\underline{S_{k}}}{k} \right\}
+\end{align}
+```
+
+According to the above two kennels, the equation for each posterior parameter can be written as below.
 
 ```{=tex}
 \begin{align}
 p(A |Y,X,\Sigma, k) &\sim MN_{K\times N}(\overline{A}, \Sigma, \overline{V})\\
 p(\Sigma|Y,X,A,k) &\sim IW_{N}(\overline{S},\overline{v})\\
+p(k |Y,X, A,\Sigma) &\sim IG2(\overline{S_{k}}, \overline{v_{k}} ) \\
 
 \overline{V} &= (X'X + (k\underline{V})^{-1})^{-1}\\
 \overline{A} &= \overline{V}(X'Y+(k\underline{V})^{-1}\underline{A}) \\
 \overline{v} &= T+\underline{v}\\
 \overline{S} &= \underline{S}+Y'Y+\underline{A}'(k\underline{V})^{-1}\underline{A}-\overline{A}'\overline{V}^{-1}\overline{A} \\
-\end{align}
-```
+\overline{v_{k}} &= kN + \underline{v_{k}}\\
+\overline{S_{k}} &= TR[\Sigma^{-1}(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})]+\underline{S_{k}}\\
 
-```{=tex}
-\begin{align}
-p(k |Y,X, A,\Sigma) &\sim IG2(\overline{S_{k}}, \overline{v_{k}} ) \\ 
-\overline{v_{k}} &= \underline{v_{k}}\\
-\overline{S_{k}} &= TR(\Sigma^{-1}\underline{A}'(\underline{V})^{-1}\underline{A}) + \underline{S_{k}}\\
 \end{align}
 ```
 
@@ -340,8 +361,8 @@ Output is the sample draws from the joint posterior distribution $\left\{ {A^{(s
 
 The above steps are summarised in the below code to generate the sample draws from the joint posterior distribution.
 
-```{r function based on extended model (1)}
-#| echo: false
+```{r function based on extended model}
+#| echo: true
 #| message: false
 #| warning: false
 
@@ -360,19 +381,14 @@ A.hat       = solve(t(X)%*%X)%*%t(X)%*%Y
 Sigma.hat   = t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/T 
 
 # Prior distribution specification - Minnesota prior 
-kappa.1     = 0.02^2                                # shrinkage for A1 to Ap
-kappa.2     = 100                                   # shrinkage for constant 
+kappa.1     = 1                                    # shrinkage for A1 to Ap
+kappa.2     = 10                                   # shrinkage for constant 
 A.prior     = matrix(0,nrow(A.hat),ncol(A.hat))
 A.prior[2:(N + 1),] = diag(N)
 V.prior     = diag(c(kappa.2,kappa.1*((1:p)^(-2))%x%rep(1,N)))
 S.prior     = diag(diag(Sigma.hat))
 nu.prior    = N+1
-```
 
-```{r function based on extended model}
-#| echo: true
-#| message: false
-#| warning: false
 # setup 
 S1          = 100                              # determine the burn-in draws
 S2          = 1000                             # number of draws from the final simulation
@@ -381,11 +397,11 @@ A.posterior       = array(NA, dim = c((1+N*p),N,S1+S2))
 Sigma.posterior   = array(NA, dim = c(N,N,S1+S2))
 k.posterior       = matrix(NA, S1+S2, 1)
 
-k.posterior[1]    = 1                          # set k0 
+k.posterior[1]    = 10                         # set k0 
 
 # Prior IG2 distribution: kappa
-S.k.prior   = 1
-nu.k.prior  = 1
+S.k.prior   = 2
+nu.k.prior  = 4
 
 ## Posterior sample draw function for extended model  
 posterior.draws.exten = function (total_S, Y, X){
@@ -408,8 +424,8 @@ for (s in 1:total_S){
     
     # posterior draws for k
     if (s!=total_S){
-    S.k.bar                = sum(diag( solve( Sigma.posterior[,,s] ) * t(A.prior)%*%diag(1/diag(V.prior))%*%A.prior )) + S.k.prior
-    nu.k.bar               = nu.k.prior 
+    S.k.bar                = sum(diag( solve( Sigma.posterior[,,s] ) * t(A.posterior[,,s]-A.prior)%*%diag(1/diag(V.prior))%*%(A.posterior[,,s]-A.prior) )) + S.k.prior
+    nu.k.bar               = (1+p*N)*N+ nu.k.prior 
     k.draw.tmp             = rchisq(1, df=nu.k.bar)
     k.draw                 = S.k.bar/k.draw.tmp
     k.posterior[s+1]       = k.draw
@@ -427,9 +443,12 @@ round(apply(posterior.ext$Sigma.posterior.exten[,,(S1+1):S2], 1:2, mean),6)
 ```
 
 ### Model Proof
-```{r function replication 1}
-test_sigma = diag(1,2)
+```{r test on basic model}
+test_sigma = diag(0.001,2)
 m = rmvnorm(n=1000, mean=c(0,0), sigma=test_sigma)
+m1 = cumsum(m[,1])
+m2 = cumsum(m[,2])
+m= cbind(m1,m2)
 
 ## Define data X, Y 
 Y = ts(m[2:nrow(m),], frequency=1)
@@ -455,19 +474,23 @@ nu.prior    = N+1
 posterior.sample.draws = posterior.draws(S=100000, Y=Y, X=X)
 round(apply(posterior.sample.draws$A.posterior, 1:2, mean),6)
 round(apply(posterior.sample.draws$Sigma.posterior, 1:2, mean),6)
+```
 
+```{r test on extended model}
 # setup 
+kappa.1     = 1                                # shrinkage for A1 to Ap
+kappa.2     = 10                               # shrinkage for constant 
 S1          = 100                              # determine the burn-in draws
 S2          = 1000                             # number of draws from the final simulation
 total_S     = S1+S2
 A.posterior       = array(NA, dim = c((1+N*p),N,S1+S2))
 Sigma.posterior   = array(NA, dim = c(N,N,S1+S2))
 k.posterior       = matrix(NA, S1+S2, 1)
-k.posterior[1]    = 1                          # set k0 
+k.posterior[1]    = 10                         # set k0 
 
 # Prior IG2 distribution: kappa
-S.k.prior   = 1
-nu.k.prior  = 1
+S.k.prior   = 2
+nu.k.prior  = 4
 
 # Applying function 
 posterior.ext = posterior.draws.exten(total_S = total_S, Y=Y, X=X)
