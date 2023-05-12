@@ -127,12 +127,16 @@ A formal Augmented Dickey-Fuller (i.e. ADF) test is performed to test the statio
 #| message: false
 #| warning: false
 ## Augmented Dickey-Fuller test
-adf.results = matrix(NA, ncol(variables_all), 1)
+adf.results = matrix(NA, 2*ncol(variables_all), 4)
 for (i in (1:ncol(variables_all))){
  adf = adf.test(variables_all[,i], k=4)
- adf.results[i] = round(adf$p.value,2)
+ adf_diff = adf.test(diff(variables_all[,i]), k=3)
+ adf.results[i,1] = round(adf$statistic,3)
+ adf.results[i,2] = round(adf$p.value,3)
+ adf.results[i,3] = round(adf_diff$statistic,3)
+ adf.results[i,4] = round(adf_diff$p.value,3)
 }
-colnames(adf.results) = c("p.value")
+colnames(adf.results) = c("statistics (level)","p.value (level)", "statistics (diff)","p.value (diff)")
 rownames(adf.results) = c("CPI", "Cash Rate", "Consum Senti", "Hr Wage")
 adf.results
 ```
