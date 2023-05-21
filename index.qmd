@@ -234,10 +234,10 @@ for (i in 1:frequency(Y)){
 N           = ncol(Y)
 p           = frequency(Y)
 A.hat       = solve(t(X)%*%X)%*%t(X)%*%Y
-Sigma.hat   = t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/T 
+Sigma.hat   = t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/nrow(Y)
 
 # Prior distribution specification - Minnesota prior 
-kappa.1     = 0.02^2                              # shrinkage for A1 to Ap
+kappa.1     = 1                                   # shrinkage for A1 to Ap
 kappa.2     = 100                                 # shrinkage for constant 
 A.prior     = matrix(0,nrow(A.hat),ncol(A.hat))
 A.prior[2:(N + 1),] = diag(N)
@@ -320,8 +320,8 @@ p(k |Y,X,A,\Sigma ) &\propto L(Y,X|A,\Sigma)p(A,\Sigma, k)\\
 
 ```{=tex}
 \begin{align}
-p(k |Y,X,A,\Sigma ) &\propto \det(k\underline{V})^{-\frac{N}{2}}\exp\left\{-\frac{1}{2}TR[\Sigma^{-1}(\underline{A}-\underline{A})'\frac{\underline{V}^{-1}}{k}(\underline{A}-\underline{A})] \right\} k^{-\frac{\underline{v_{k}+2}}{2}}\exp\left\{ -\frac{1}{2}\frac{\underline{S_{k}}}{k} \right\} \\
-& = k^{-\frac{kN+\underline{v_{k}+2}}{2}}\exp\left\{-\frac{1}{2}\frac{TR[\Sigma^{-1}(\underline{A}-\underline{A})'\frac{\underline{V}^{-1}}{k}(\underline{A}-\underline{A})]+\underline{S_{k}}}{k} \right\}
+p(k |Y,X,A,\Sigma ) &\propto \det(k\underline{V})^{-\frac{N}{2}}\exp\left\{-\frac{1}{2}TR[\Sigma^{-1}(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})] \right\} k^{-\frac{\underline{v_{k}+2}}{2}}\exp\left\{ -\frac{1}{2}\frac{\underline{S_{k}}}{k} \right\} \\
+& = k^{-\frac{kN+\underline{v_{k}+2}}{2}}\exp\left\{-\frac{1}{2}\frac{TR[\Sigma^{-1}(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})]+\underline{S_{k}}}{k} \right\}
 \end{align}
 ```
 
@@ -378,7 +378,7 @@ for (i in 1:frequency(Y)){
 N           = ncol(Y)
 p           = frequency(Y)
 A.hat       = solve(t(X)%*%X)%*%t(X)%*%Y
-Sigma.hat   = t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/T 
+Sigma.hat   = t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/nrow(Y)
 
 # Prior distribution specification - Minnesota prior 
 kappa.1     = 1                                    # shrinkage for A1 to Ap
@@ -444,10 +444,8 @@ round(apply(posterior.ext$Sigma.posterior.exten[,,(S1+1):S2], 1:2, mean),6)
 
 ### Model Proof
 ```{r test on basic model}
-test_sigma = diag(0.001,2)
-m = rmvnorm(n=1000, mean=c(0,0), sigma=test_sigma)
-m1 = cumsum(m[,1])
-m2 = cumsum(m[,2])
+m1 = cumsum(rnorm(1000, 0, sd=1))
+m2 = cumsum(rnorm(1000, 0, sd=1))
 m= cbind(m1,m2)
 
 ## Define data X, Y 
@@ -459,11 +457,11 @@ X = cbind(X,m[2:nrow(m)-1,])
 N           = ncol(Y)
 p           = frequency(Y)
 A.hat       = solve(t(X)%*%X)%*%t(X)%*%Y
-Sigma.hat   = t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/T
+Sigma.hat   = t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/nrow(Y)
 
 # Prior distribution specification - Minnesota prior 
-kappa.1     = 0.02^2                               # shrinkage for A1 to Ap
-kappa.2     = 100                                  # shrinkage for constant 
+kappa.1     = 1                                    # shrinkage for A1 to Ap
+kappa.2     = 10                                   # shrinkage for constant 
 A.prior     = matrix(0,nrow(A.hat),ncol(A.hat))
 A.prior[2:(N + 1),] = diag(N)
 V.prior     = diag(c(kappa.2,kappa.1*((1:p)^(-2))%x%rep(1,N)))
@@ -497,6 +495,5 @@ posterior.ext = posterior.draws.exten(total_S = total_S, Y=Y, X=X)
 round(apply(posterior.ext$A.posterior.exten[,,(S1+1):S2], 1:2, mean),6)
 round(apply(posterior.ext$Sigma.posterior.exten[,,(S1+1):S2], 1:2, mean),6)
 ```
-
 
 ## References {.unnumbered}
