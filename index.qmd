@@ -9,18 +9,17 @@ format:
 bibliography: references.bib
 ---
 
-
 > **Abstract.** This reseach project is motivated by the prevailing high inflation environment post pandemic, aiming to investigate and forecast how inflation will evolve over time under the applicaion of the Bayesian VARs.
 
 > **Keywords.** Bayesian VARs, inflation, forecasting
 
 ## Objectives & Motivations
 
-Since post pandemic, the inflation in Australia has increased largely, reaching at 7.8% per annual reported in the December quarter of 2022, becoming the highest rate in over 30 years from the speech of the [Australian Financial Review Business Summit](https://www.rba.gov.au/speeches/2023/sp-gov-2023-03-08.html#:~:text=In%20the%20December%20quarter%2C%20the,in%20more%20than%20three%20decades.). Given a high inflation can have negative impact in many aspects, such as reducing the consumer's purchasing power, and changing spending behaviour and investment decisions, it is not only a problem that every central bank is now aiming to deal with in order to achieve the price stability and the sustainable economic growth, but also can each one of us get to know how it will evolve in the future as it relates closely to our daily life.
+Since post pandemic, the inflation in Australia has increased largely, reaching at 7.8% per annual reported in the December quarter of 2022, becoming the highest rate in over 30 years [Australian Financial Review Business Summit](https://www.rba.gov.au/speeches/2023/sp-gov-2023-03-08.html#:~:text=In%20the%20December%20quarter%2C%20the,in%20more%20than%20three%20decades.). Given a high inflation can have negative impact in many aspects, such as reducing the consumer's purchasing power, and changing spending behaviour and investment decisions, it is not only a problem that every central bank is now aiming to deal with in order to achieve the price stability and the sustainable economic growth, but also can each one of us get to know how it will evolve in the future as it relates closely to our daily life.
 
-The objective of this research project is to apply Bayesian VARs model to analyse the dynamic relationships of the inflation and three other economic variables so as to eventually forecast the time ahead inflation.
+The objective of this research project is to apply Bayesian VARs model in 10 economic variables to forecast inflation through the dynamic interaction. 
 
-The questions to address is "what's the inflation in the next two years, and how soon the current inflation can return to the annual target, that is, 2 to 3 per cent in Australia?".
+The questions to address is "what's the inflation in the next three years, and how soon the current inflation can return to the annual target, that is, 2 to 3 per cent in Australia?".
 
 ## Data & Data Properties
 
@@ -36,23 +35,33 @@ library(TSstudio)
 library(xts)
 library(tseries)
 library(mvtnorm)
+library(mvtnorm)
+library(plot3D)
+library(MASS)
+library(HDInterval)
 ```
 
-The Consumer Price Index (CPI) is a well-known indicator of inflation, hence applied in the model to quantify it.
+The 10 economic variables of interest are listed below, 
 
-To forecast the inflation (or CPI), three other economic variables are proposed in the model for interaction, namely,
+-   $cpi_{t}$: the Consumer Price Index from the Australian Bureau of Statistics (ABS),
 
--   the Cash Rate of the Reserve Bank of Australia (RBA),
+-   $cashr_{t}$: the Cash Rate of the Reserve Bank of Australia (RBA),
 
--   the Consumer Confidence Index from the Roy Morgan, and
+-   $gdp_{t}$: the Gross Domestic Product per capita seasonal adjusted from the Australian Bureau of Statistics (ABS),
 
--   the Wage Price Index from the Australian Bureau of Statistics (ABS).
+-   $lbr_{t}$: the unit labour cost seasonal adjusted from the Australian Bureau of Statistics (ABS),
 
-Firstly, the Cash Rate is proposed given it's a means of the Monetary Policy having been used to control and target the inflation.
+-   $unem_{t}$: the unemployment rate seasonal adjusted from the Australian Bureau of Statistics (ABS),
 
-Secondly, according to the [RBA](https://www.rba.gov.au/education/resources/explainers/causes-of-inflation.html) , demand-pull, inflation expectations and cost-push are three broad categories causing the inflation. Therefore, the [Consumer Sentiment Index](https://melbourneinstitute.unimelb.edu.au/publications/macroeconomic-reports) indicating the consumer confidence level changes in the economic activity is proposed as a proxy measurement of the demand-pull and inflation expectation. In addition, the Wage Price Index measuring the total hourly pay rate changes for all Australian industries is proposed to analyse how inflation varies from the perspective of the cost-push.
+-   $constru_{t}$: the Construction Work Done seasonal adjusted from the Australian Bureau of Statistics (ABS),
 
-The 4 variables are transformed into a consistent format for analysis.
+-   $corpft_{t}$: the company profits before income tax seasonal adjusted from the Australian Bureau of Statistics (ABS),
+
+-   $export_{t}$: the International export in Goods and Services seasonal adjusted from the Australian Bureau of Statistics (ABS),
+
+-   $import_{t}$: the International import in Goods and Services seasonal adjusted from the Australian Bureau of Statistics (ABS),
+
+-   $arri_{t}$: the Overseas Arrivals from the Australian Bureau of Statistics (ABS).
 
 ```{r variables}
 #| echo: false
@@ -60,64 +69,107 @@ The 4 variables are transformed into a consistent format for analysis.
 #| warning: false
 
 # Inflation CPI 
-# Index Numbers ;  All groups CPI ;  Australia ; Sep-1948 to Mar-2023
+# Index Numbers; Sep-1948 to Mar-2023
 cpi_dwnld   = read_abs(series_id = "A2325846C")     
 cpi_tmp     = xts::xts(cpi_dwnld$value, cpi_dwnld$date)
 cpi_tmp     = log(cpi_tmp)   # log transformation of the index value 
 
 # Cash rate target
-# Percentage, monthly ; Sep-1990 to Mar-2023
+# Percentage, monthly; Sep-1990 to Mar-2023
 cashr_dwnld   = readrba::read_rba(series_id = "FIRMMCRT")   # Cash Rate Target
 cashr_tmp     = xts::xts(cashr_dwnld$value, cashr_dwnld$date)
-cashr_tmp     = apply.quarterly(cashr_tmp,mean) # aggregate monthly to quarterly average
+cashr_tmp     = apply.quarterly(cashr_tmp,mean)  # aggregate monthly to quarterly average
 cashr_tmp     = xts(cashr_tmp, seq(as.Date("1990-09-01"), by = "quarter", length.out = length(cashr_tmp)))
 
-# Consumer confidence 
-# Index value, quarterly ; Mar-2000 to Mar-2023
-consum_dwnld  = read.xlsx("https://roymorgan-cms-dev.s3.ap-southeast-2.amazonaws.com/wp-content/uploads/2023/03/06052804/9180-ANZ-Roy-Morgan-Australian-CC-Data-1986-2023.xlsx",sheet=20)
-consum_dwnld  = data.frame(na.omit(consum_dwnld[,4]))
-consum_date   = seq(as.Date('2000-03-01'), as.Date('2023-03-01'), by = "quarter")
-row.names(consum_dwnld) = consum_date
-consum_tmp    = as.xts(log(consum_dwnld))
-consum_tmp    = xts(consum_tmp, seq(as.Date('2000-03-01'), by = "quarter", length.out = length(consum_tmp)))
+# Gross Domestic Product per capita seasonal adjusted
+# Index Numbers ; Sep-1973 to Dec-2022
+gdp_dwnld   = read_abs(series_id = "A2304404C")     
+gdp_tmp     = xts::xts(gdp_dwnld$value, gdp_dwnld$date)
+gdp_tmp     = log(gdp_tmp)   # log transformation of the index value 
 
-# Hourly wage 
-# Total hourly rates of pay excluding bonuses ; Private and Public ;  All industries ; Sep-1997 - Dec-2022
-wage_dwnld   = read_abs(series_id = "A2603609J")
-wage_tmp     = xts::xts(wage_dwnld$value, wage_dwnld$date)
-wage_tmp     = log(wage_tmp)   # log transformation of the index value 
+# Unit labour cost seasonal adjusted 
+# Index Numbers; Sep-1985 to Dec-2022
+lbr_dwnld   = read_abs(series_id = "A2433068T")     
+lbr_tmp     = xts::xts(lbr_dwnld$value, lbr_dwnld$date)
+lbr_tmp     = log(lbr_tmp)   # log transformation of the index value 
+
+# Unemployment rate seasonal adjusted 
+# Percentage; Feb-1978 to Apr-2023; MONTHLY 
+unem_dwnld   = read_abs(series_id = "A84423050A")     
+unem_tmp     = xts::xts(unem_dwnld$value, unem_dwnld$date)
+unem_tmp     = apply.quarterly(unem_tmp,mean)
+unem_tmp     = xts(unem_tmp, seq(as.Date("1978-03-01"), by = "quarter", length.out = length(unem_tmp)))
+
+# Construction Work Done seasonal adjusted 
+# Index Numbers; Sep-1976 to Dec-2022
+# Chain Volume Measures: only vary with changes in the quantities of commodities produced or sold
+constru_dwnld   = read_abs(series_id = "A405136V")     
+constru_tmp     = xts::xts(constru_dwnld$value, constru_dwnld$date)
+constru_tmp     = log(constru_tmp)   # log transformation of the index value 
+
+# Company profits before income tax seasonal adjusted
+# Index Numbers; Sep-1985 to Dec-2022
+corpft_dwnld   = read_abs(series_id = "A3530942R")     
+corpft_tmp     = xts::xts(corpft_dwnld$value, corpft_dwnld$date)
+corpft_tmp     = log(corpft_tmp)   # log transformation of the index value 
+
+# International Trade in Goods and Services seasonal adjusted  
+# Index Numbers; July-1971 to Mar-2023; MONTHLY
+export_dwnld   = read_abs(series_id = "A2718603V")     
+export_tmp     = abs(xts::xts(export_dwnld$value, export_dwnld$date))
+export_tmp     = apply.quarterly(export_tmp,mean)
+export_tmp     = log(export_tmp) 
+
+import_dwnld   = read_abs(series_id = "A2718577A")     
+import_tmp     = xts::xts(import_dwnld$value, import_dwnld$date)
+import_tmp     = apply.quarterly(import_tmp,mean)
+import_tmp     = log(import_tmp) 
+
+# Overseas Arrivals 
+# Index Numbers; Jan-1976 to Mar-2023; MONTHLY
+arri_dwnld   = read_abs(series_id = "A85232561W")     
+arri_tmp     = xts::xts(arri_dwnld$value, arri_dwnld$date)
+arri_tmp     = apply.quarterly(arri_tmp,mean)
+arri_tmp     = log(arri_tmp)
+
+#depar_dwnld  = read_abs(series_id = "A85232570X")     
+#depar_tmp    = xts::xts(depar_dwnld$value, depar_dwnld$date)
+#depar_tmp     = apply.quarterly(depar_tmp,mean)
+#depar_tmp    = log(depar_tmp)
+#net.travel  = arri_tmp - depar_tmp
+#trvl_tmp    = apply.quarterly(net.travel,mean)
+#trvl_tmp    = log(arri_tmp)
 
 # All Variables
-variables_all = na.omit(merge(cpi_tmp ,cashr_tmp, consum_tmp, wage_tmp))
-colnames(variables_all)   = c("CPI", "Cash Rate", "Consum Senti", "Hr Wage")
+variables_all             = na.omit(merge(cpi_tmp, cashr_tmp, gdp_tmp, lbr_tmp, unem_tmp, constru_tmp, corpft_tmp,  export_tmp, import_tmp, arri_tmp ))
+colnames(variables_all)   = c("cpi_tmp", "cashr_tmp", "gdp_tmp", "lbr_tmp", "unem_tmp", "constru_tmp","corpft_tmp", "export_tmp", "import_tmp", "arri_tmp")
 ```
 
-A time series plot is displayed below to visualize how the 4 proposed variables vary throughout the past 12 years starting from March 2011 to December 2022.
+A time series plot is displayed below to visualize how the 10 proposed variables vary in the past 33 years starting from September 1990 to December 2022.
 
 ```{r plot}
 #| echo: false
 #| message: false
 #| warning: false
-#| 
 
-#plot(variables_all[,1])
-#plot(variables_all[,2])
-#plot(variables_all[,3])
-#plot(variables_all[,4])
-
-ts_plot(na.omit(variables_all), type = "multiple", title = FALSE, Xgrid = TRUE)
+par(mfcol = c(3, 4))
+for (i in 1:10){ 
+ts.plot(variables_all[,i], ylab =colnames(variables_all)[i])
+}
 ```
 
-The autocorrelation plot is presented below. It is clear that each variable shows some statistical significance in lag 1 indicating the random walk process.
+The autocorrelation plot is presented below. It is clear that all variable show some statistical significance in lag 1 indicating the random walk process.
 
 ```{r all variable acf}
 #| echo: false
 #| message: false
 #| warning: false
-acf(variables_all[,1])
-acf(variables_all[,2])
-acf(variables_all[,3])
-acf(variables_all[,4])
+#| 
+par(mfcol = c(3, 4))
+for (i in 1:10){
+acf = acf(variables_all[,i], plot = FALSE)
+plot(acf, main = colnames(variables_all)[i])
+}
 ```
 
 A formal Augmented Dickey-Fuller (i.e. ADF) test is performed to test the stationarity of the variables.
@@ -133,23 +185,39 @@ for (i in (1:ncol(variables_all))){
  adf.results[i] = round(adf$p.value,2)
 }
 colnames(adf.results) = c("p.value")
-rownames(adf.results) = c("CPI", "Cash Rate", "Consum Senti", "Hr Wage")
+rownames(adf.results) = colnames(variables_all)
+adf.results
+
+# ADF test on I(1)
+diff.all = na.omit(diff(variables_all))
+for (i in (1:ncol(diff.all))){
+ adf = adf.test(diff.all[,i], k=4)
+ adf.results[i] = round(adf$p.value,2)
+}
+colnames(adf.results) = c("diff.p.value")
+rownames(adf.results) = colnames(variables_all)
+adf.results
+
+# ADF test on I(2) - CPI
+diff2.cpi = na.omit(diff(diff.all[,1]))
+adf = adf.test(diff2.cpi, k=4)
+adf.results = round(adf$p.value,2)
 adf.results
 ```
 
-According to the ADF test results, we do not reject the null hypothesis of non-stationary, and thus conclude the chosen variables show some stochastic random walk process. This finding supports the specification of the prior distribution we will discuss later.
+According to the ADF test results, most of the variables, expect for $cpi_{t}$ and $cashr_{t}$, are integrated at 1. This leads to applying the Minnesota prior in the model, which specify the stylised facts, such as unit root non-stationary. 
 
 ## Model and Hypotheses
 
-The basic model equation we will build upon throughout the research project is stated below with the error term specified in the matrix-variate normal distribution, which includes a T x 4 dimension mean, a 4 x 4 dimension row specific covariance matrix and a T dimension identity matrix referring to the column specified covariance.
+The basic model equation we will build upon throughout the research project is stated below with the error term specified in the matrix-variate normal distribution, which includes a $T \times 10$ dimension mean, a $10 \times 10$ dimension row specific covariance matrix and a $T$ dimension identity matrix referring to the column specified covariance.
 
--   Y is a T x 4 matrix representing the 4 variables introduced in the model as explained previously and each variable spreading out to T periods.
+-   $Y$ is a $T \times 10$ matrix representing the $10$ variables introduced in the model as explained previously and each variable spreading out to $T$ periods.
 
--   X is a T x (1+4P) matrix with T referring to the periods of time and (1+4P) referring to the 4 variables, each of which has p lags in the VAR system.
+-   $X$ is a $T \times K$ matrix with $T$ referring to the periods of time and $K = 1+10 \times P$ referring to $1$ intercept and $10$ variables, each of which has $p$ lags.
 
--   A is a (1+4P) x 4 matrix with 1+4P corresponding to every coefficient in the referring variable.
+-   $A$ is a $K \times N$ matrix with $K$ corresponding to the total number of coefficients in each equation. 
 
--   E is a T x 4 matrix referring to the error term in each of the equation.
+-   $E$ is a $T \times 10$ matrix referring to the error term in each of the equation.
 
 ```{=tex}
 \begin{align}
@@ -158,9 +226,11 @@ Y &= XA + E \\
 ```
 ```{=tex}
 \begin{align}
-E |X  &\sim MN_{T \times 4 } (\textbf{0}_{T\times 4}, \Sigma , I_{T}) \\
+E |X  &\sim MN_{T \times 10 } (\textbf{0}_{T\times 10}, \Sigma , I_{T}) \\
 \end{align}
 ```
+
+
 ## Modelling Framework
 
 ### Basic Model
@@ -218,12 +288,12 @@ p(\Sigma|Y,X)&\sim IW_{N}(\overline{S}, \overline{v})
 
 The above steps are summarised in the below code to generate the sample draws from the joint posterior distribution.
 
-```{r function based on basic model}
-#| echo: true
+```{r static data setup}
+#| echo: false
 #| message: false
 #| warning: false
 ## Present data X, Y
-y = ts(variables_all[,1:4])
+y = ts(variables_all[,1:ncol(variables_all)])
 Y = ts(y[5:nrow(y),], frequency=4)
 X = matrix(1,nrow(Y),1)
 for (i in 1:frequency(Y)){
@@ -240,11 +310,16 @@ Sigma.hat   = t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/nrow(Y)
 kappa.1     = 1                                   # shrinkage for A1 to Ap
 kappa.2     = 100                                 # shrinkage for constant 
 A.prior     = matrix(0,nrow(A.hat),ncol(A.hat))
-A.prior[2:(N + 1),] = diag(N)
+A.prior[2:(N + 1), ] = diag(N)
 V.prior     = diag(c(kappa.2,kappa.1*((1:p)^(-2))%x%rep(1,N)))
 S.prior     = diag(diag(Sigma.hat))
 nu.prior    = N+1
+```
 
+```{r function based on basic model}
+#| echo: true
+#| message: false
+#| warning: false
 ## Posterior sample draw function 
 posterior.draws = function (S, Y, X){
     # normal-inverse Wishard posterior parameters
@@ -272,8 +347,8 @@ posterior.draws = function (S, Y, X){
 ## Applying function 
 # A.hat       = solve(t(X)%*%X)%*%t(X)%*%Y
 posterior.sample.draws = posterior.draws(S=50000, Y=Y, X=X)
-round(apply(posterior.sample.draws$A.posterior, 1:2, mean),6)
-round(apply(posterior.sample.draws$Sigma.posterior, 1:2, mean),6)
+# round(apply(posterior.sample.draws$A.posterior, 1:2, mean),6)
+# round(apply(posterior.sample.draws$Sigma.posterior, 1:2, mean),6)
 ```
 
 ### Model Extension
@@ -296,9 +371,9 @@ p(k) &\sim IG2(\underline{S_{k}}, \underline{v_{k}} ) \\
 \end{align}
 ```
 
-We multiply the corresponding distribution probability density functions (i.e. pdf) of $L(Y,X|A,\Sigma)p(A|\Sigma, k)p(\Sigma)p(k)$, the kennel of the posterior distribution is written as below.
+We multiply the corresponding distribution probability density functions (i.e. pdf) of $L(Y,X|A,\Sigma)p(A|\Sigma, k)p(\Sigma)p(k)$, the kernel of the posterior distribution is written as below.
 
-1. The kennel of the fully conditional posterior distribution of $A$ and $\Sigma$ is as below.
+1. The kernel of the fully conditional posterior distribution of $A$ and $\Sigma$ is as below.
 
 ```{=tex}
 \begin{align}
@@ -308,7 +383,7 @@ p(A,\Sigma |Y,X, k) &\propto L(Y,X|A,\Sigma)p(A |\Sigma, k)p(\Sigma) \\
 \end{align}
 ```
 
-2. The kennel of the fully conditional posterior distribution of $k$ is as below.
+2. The kernel of the fully conditional posterior distribution of $k$ is as below.
 
 ```{=tex}
 \begin{align}
@@ -325,7 +400,7 @@ p(k |Y,X,A,\Sigma ) &\propto \det(k\underline{V})^{-\frac{N}{2}}\exp\left\{-\fra
 \end{align}
 ```
 
-According to the above two kennels, the equation for each posterior parameter can be written as below.
+According to the above two kernels, the equation for each posterior parameter can be written as below.
 
 ```{=tex}
 \begin{align}
@@ -365,30 +440,6 @@ The above steps are summarised in the below code to generate the sample draws fr
 #| echo: true
 #| message: false
 #| warning: false
-
-## Present data X, Y
-y       = ts(variables_all[,1:4])
-Y       = ts(y[5:nrow(y),], frequency=4)
-X       = matrix(1,nrow(Y),1)
-for (i in 1:frequency(Y)){
-  X     = cbind(X,y[5:nrow(y)-i,])
-}
- 
-## Pre-setup 
-N           = ncol(Y)
-p           = frequency(Y)
-A.hat       = solve(t(X)%*%X)%*%t(X)%*%Y
-Sigma.hat   = t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/nrow(Y)
-
-# Prior distribution specification - Minnesota prior 
-kappa.1     = 1                                    # shrinkage for A1 to Ap
-kappa.2     = 10                                   # shrinkage for constant 
-A.prior     = matrix(0,nrow(A.hat),ncol(A.hat))
-A.prior[2:(N + 1),] = diag(N)
-V.prior     = diag(c(kappa.2,kappa.1*((1:p)^(-2))%x%rep(1,N)))
-S.prior     = diag(diag(Sigma.hat))
-nu.prior    = N+1
-
 # setup 
 S1          = 100                              # determine the burn-in draws
 S2          = 1000                             # number of draws from the final simulation
@@ -437,13 +488,15 @@ for (s in 1:total_S){
   
 ## Applying function 
 posterior.ext = posterior.draws.exten(total_S = total_S, Y=Y, X=X)
-round(apply(posterior.ext$A.posterior.exten[,,(S1+1):S2], 1:2, mean),6)
-round(apply(posterior.ext$Sigma.posterior.exten[,,(S1+1):S2], 1:2, mean),6)
-
+# round(apply(posterior.ext$A.posterior.exten[,,(S1+1):S2], 1:2, mean),6)
+# round(apply(posterior.ext$Sigma.posterior.exten[,,(S1+1):S2], 1:2, mean),6)
 ```
 
 ### Model Proof
 ```{r test on basic model}
+#| echo: true
+#| message: false
+#| warning: false
 m1 = cumsum(rnorm(1000, 0, sd=1))
 m2 = cumsum(rnorm(1000, 0, sd=1))
 m= cbind(m1,m2)
@@ -475,6 +528,9 @@ round(apply(posterior.sample.draws$Sigma.posterior, 1:2, mean),6)
 ```
 
 ```{r test on extended model}
+#| echo: true
+#| message: false
+#| warning: false
 # setup 
 kappa.1     = 1                                # shrinkage for A1 to Ap
 kappa.2     = 10                               # shrinkage for constant 
@@ -495,5 +551,255 @@ posterior.ext = posterior.draws.exten(total_S = total_S, Y=Y, X=X)
 round(apply(posterior.ext$A.posterior.exten[,,(S1+1):S2], 1:2, mean),6)
 round(apply(posterior.ext$Sigma.posterior.exten[,,(S1+1):S2], 1:2, mean),6)
 ```
+
+### Forecasting 
+
+The aim of the forecasting is to predict how the variable of interest $cpi_{t}$ and $cashr_{t}$ are going to evolve in the next three years, that is $h=12$ steps ahead. 
+
+The forecasts are built on both the basic and the extended models and the results are presented below. 
+
+```{r forecasting static data}
+#| echo: false
+#| message: false
+#| warning: false
+## Present data X, Y
+y = ts(variables_all[,1:ncol(variables_all)])
+Y = ts(y[5:nrow(y),], frequency=4)
+X = matrix(1,nrow(Y),1)
+for (i in 1:frequency(Y)){
+  X     = cbind(X,y[5:nrow(y)-i,])
+}
+ 
+## Pre-setup 
+N           = ncol(Y)
+p           = frequency(Y)
+A.hat       = solve(t(X)%*%X)%*%t(X)%*%Y
+Sigma.hat   = t(Y-X%*%A.hat)%*%(Y-X%*%A.hat)/nrow(Y)
+
+# Prior distribution specification - Minnesota prior 
+kappa.1     = 1                                   # shrinkage for A1 to Ap
+kappa.2     = 100                                 # shrinkage for constant 
+A.prior     = matrix(0,nrow(A.hat),ncol(A.hat))
+A.prior[2:(N + 1),] = diag(N)
+V.prior     = diag(c(kappa.2,kappa.1*((1:p)^(-2))%x%rep(1,N)))
+S.prior     = diag(diag(Sigma.hat))
+nu.prior    = N+1
+```
+
+```{r forecasting basic model}
+#| echo: true
+#| message: false
+#| warning: false
+## Applying function 
+posterior.sample.draws = posterior.draws(S=50000, Y=Y, X=X)
+A.posterior.simu       = posterior.sample.draws$A.posterior
+Sigma.posterior.simu   = posterior.sample.draws$Sigma.posterior
+
+## Three-year ahead forecasting h=12
+# set up
+h                 = 12
+S                 = 50000
+Y.h               = array(NA,c(h,N,S))
+
+# to calculate A.bar
+V.bar.inv   = t(X)%*%X + diag(1/diag(V.prior))
+V.bar       = solve(V.bar.inv)
+A.bar       = V.bar%*%(t(X)%*%Y + diag(1/diag(V.prior))%*%A.prior)
+
+# sampling predictive density
+for (s in 1:S){
+  A.posterior.draw     = A.posterior.simu[,,s]
+  Sigma.posterior.draw = Sigma.posterior.simu[,,s]
+    x.Ti               = Y[(nrow(Y)-p+1):nrow(Y),]
+    x.Ti               = x.Ti[p:1,]
+  for (i in 1:h){
+    x.T                = c(1,as.vector(t(x.Ti)))
+    Y.f                = rmvnorm(1, mean = x.T%*%A.posterior.draw, sigma=Sigma.posterior.draw)
+      x.Ti             = rbind(Y.f,x.Ti[1:(p-1),])
+    Y.h[i,,s]          = Y.f[1:N]
+  }
+}
+```
+
+```{r forecasting plot basic model}
+#| echo: false
+#| message: false
+#| warning: false
+## Forecasting plotting      
+mcxs1  = "#05386B"
+mcxs2  = "#379683"
+mcxs3  = "#5CDB95"
+mcxs4  = "#8EE4AF"
+mcxs5  = "#EDF5E1"
+
+# par(mfcol = c(1, 2))
+# Log CPI forecasting 
+limits.1    = range(Y.h[,1,])
+point.f     = apply(Y.h[,1,],1,mean)
+interval.f  = apply(Y.h[,1,],1,hdi,credMass=0.90)
+theta = 180
+phi   = 15.5
+
+x           = seq(from=limits.1[1], to=limits.1[2], length.out=100)
+z           = matrix(NA,h,99)
+for (i in 1:h){
+  z[i,]     = hist(Y.h[i,1,], breaks=x, plot=FALSE)$density
+}
+x           = hist(Y.h[i,1,], breaks=x, plot=FALSE)$mids
+yy          = 1:h
+z           = t(z)
+
+f4    = persp3D(x=x, y=yy, z=z, phi=phi, theta=theta, xlab="\ncpi[t+h|t]", ylab="h", zlab="\npredictive densities of cpi", shade=NA, border=NA, ticktype="detailed", nticks=3,cex.lab=1, col=NA,plot=FALSE)
+perspbox (x=x, y=yy, z=z, bty="f", col.axis="black", phi=phi, theta=theta, xlab="\nlog.cpi[t+h|t]", ylab="h", zlab="\npredictive densities of cpi", ticktype="detailed", nticks=3,cex.lab=1, col = NULL, plot = TRUE)
+polygon3D(x=c(interval.f[1,],interval.f[2,h:1]), y=c(1:h,h:1), z=rep(0,2*h), col = mcxs4, NAcol = "white", border = NA, add = TRUE, plot = TRUE)
+
+for (i in 1:h){
+  f4.l = trans3d(x=x, y=yy[i], z=z[,i], pmat=f4)
+  lines(f4.l, lwd=0.5, col="black")
+}
+f4.l1 = trans3d(x=point.f, y=yy, z=0, pmat=f4)
+lines(f4.l1, lwd=2, col=mcxs1)
+
+# cash rate forecasting 
+limits.1    = range(Y.h[,2,])
+point.f     = apply(Y.h[,2,],1,mean)
+interval.f  = apply(Y.h[,2,],1,hdi,credMass=0.90)
+theta = 180
+phi   = 15.5
+
+x           = seq(from=limits.1[1], to=limits.1[2], length.out=100)
+z           = matrix(NA,h,99)
+for (i in 1:h){
+  z[i,]     = hist(Y.h[i,2,], breaks=x, plot=FALSE)$density
+}
+x           = hist(Y.h[i,2,], breaks=x, plot=FALSE)$mids
+yy          = 1:h
+z           = t(z)
+
+f4    = persp3D(x=x, y=yy, z=z, phi=phi, theta=theta, xlab="\ncash.rate[t+h|t]", ylab="h", zlab="\npredictive densities of cash rate", shade=NA, border=NA, ticktype="detailed", nticks=3,cex.lab=1, col=NA,plot=FALSE)
+perspbox (x=x, y=yy, z=z, bty="f", col.axis="black", phi=phi, theta=theta, xlab="\ncash rate[t+h|t]", ylab="h", zlab="\npredictive densities of cash rate", ticktype="detailed", nticks=3,cex.lab=1, col = NULL, plot = TRUE)
+polygon3D(x=c(interval.f[1,],interval.f[2,h:1]), y=c(1:h,h:1), z=rep(0,2*h), col = mcxs5, NAcol = "white", border = NA, add = TRUE, plot = TRUE)
+
+for (i in 1:h){
+  f4.l = trans3d(x=x, y=yy[i], z=z[,i], pmat=f4)
+  lines(f4.l, lwd=.5, col="black")
+}
+f4.l1 = trans3d(x=point.f, y=yy, z=0, pmat=f4)
+lines(f4.l1, lwd=2,col=mcxs2)
+```
+The above graph shows the 12-step ahead predictive densities for $cpi_{t}$ and $cashr_{t}$ on the basic model. It can be clearly seen that $cpi_{t}$ would keep slowly growing from $\log(4.9)$ when $h=1$ to roughly $\log(4.95)$ reaching the end 2025, indicating a 0.44% (i.e. $\log(4.95) - \log(4.9)$ growth rate over 3 years time. 
+
+However, $cashr_{t}$ moves differently. It would first increase in the first 3 periods then decrease for the rest 9 periods, reaching below 0 at the end of 2025. The negative $cashr_{t}$ might be unconventional, however the general way of how it evolves over time is in line with the expectation. 
+
+
+```{r forecasting on extended model}
+#| echo: true
+#| message: false
+#| warning: false
+# setup 
+S1          = 5000                              # determine the burn-in draws
+S2          = 50000                             # number of draws from the final simulation
+total_S     = S1+S2
+A.posterior       = array(NA, dim = c((1+N*p),N,S1+S2))
+Sigma.posterior   = array(NA, dim = c(N,N,S1+S2))
+k.posterior       = matrix(NA, S1+S2, 1)
+
+k.posterior[1]    = 10                         # set k0 
+
+# Prior IG2 distribution: kappa
+S.k.prior   = 2
+nu.k.prior  = 4
+
+## Applying function 
+posterior.ext              = posterior.draws.exten(total_S = total_S, Y=Y, X=X)
+A.posterior.ext.simu       = posterior.ext$A.posterior.exten[,,(S1+1):S2]
+Sigma.posterior.ext.simu   = posterior.ext$Sigma.posterior.exten[,,(S1+1):S2]
+
+## Three-year ahead forecasting h=12
+# set up
+h                 = 12
+S                 = 45000
+Y.h.ext           = array(NA,c(h,N,S))
+
+# sampling predictive density
+for (s in 1:S){
+  A.posterior.draw     = A.posterior.ext.simu[,,s]
+  Sigma.posterior.draw = Sigma.posterior.ext.simu[,,s]
+    x.Ti               = Y[(nrow(Y)-p+1):nrow(Y),]
+    x.Ti               = x.Ti[p:1,]
+  for (i in 1:h){
+    x.T                = c(1,as.vector(t(x.Ti)))
+    Y.f                = rmvnorm(1, mean = x.T%*%A.posterior.draw, sigma=Sigma.posterior.draw)
+      x.Ti             = rbind(Y.f,x.Ti[1:(p-1),])
+    Y.h.ext[i,,s]          = Y.f[1:N]
+  }
+}
+```
+
+```{r forecasting plot on extended model}
+#| echo: false
+#| message: false
+#| warning: false
+## Extended Model Forecasting plotting  
+# par(mfcol = c(1, 2))
+# Log CPI forecasting 
+limits.1    = range(Y.h.ext[,1,])
+point.f     = apply(Y.h.ext[,1,],1,mean)
+interval.f  = apply(Y.h.ext[,1,],1,hdi,credMass=0.90)
+theta = 180
+phi   = 15.5
+x           = seq(from=limits.1[1], to=limits.1[2], length.out=100)
+z           = matrix(NA,h,99)
+for (i in 1:h){
+  z[i,]     = hist(Y.h.ext[i,1,], breaks=x, plot=FALSE)$density
+}
+x           = hist(Y.h.ext[i,1,], breaks=x, plot=FALSE)$mids
+yy          = 1:h
+z           = t(z)
+
+f4          = persp3D(x=x, y=yy, z=z, phi=phi, theta=theta, xlab="\ncpi[t+h|t]", ylab="h", zlab="\npredictive densities of cpi", shade=NA, border=NA, ticktype ="detailed", nticks=3,cex.lab=1, col=NA,plot=FALSE)
+perspbox (x=x, y=yy, z=z, bty="f", col.axis="black", phi=phi, theta=theta, xlab="\nlog.cpi[t+h|t]", ylab="h", zlab="\npredictive densities of cpi", ticktype ="detailed", nticks=3,cex.lab=1, col = NULL, plot = TRUE)
+polygon3D(x=c(interval.f[1,],interval.f[2,h:1]), y=c(1:h,h:1), z=rep(0,2*h), col = mcxs4, NAcol = "white", border = NA, add = TRUE, plot = TRUE)
+
+for (i in 1:h){
+  f4.l = trans3d(x=x, y=yy[i], z=z[,i], pmat=f4)
+  lines(f4.l, lwd=0.5, col="black")
+}
+f4.l1 = trans3d(x=point.f, y=yy, z=0, pmat=f4)
+lines(f4.l1, lwd=2, col=mcxs1)
+
+# cash rate forecasting 
+limits.1    = range(Y.h.ext[,2,])
+point.f     = apply(Y.h.ext[,2,],1,mean)
+interval.f  = apply(Y.h.ext[,2,],1,hdi,credMass=0.90)
+theta = 180
+phi   = 15.5
+
+x           = seq(from=limits.1[1], to=limits.1[2], length.out=100)
+z           = matrix(NA,h,99)
+for (i in 1:h){
+  z[i,]     = hist(Y.h.ext[i,2,], breaks=x, plot=FALSE)$density
+}
+x           = hist(Y.h.ext[i,2,], breaks=x, plot=FALSE)$mids
+yy          = 1:h
+z           = t(z)
+
+f4          = persp3D(x=x, y=yy, z=z, phi=phi, theta=theta, xlab="\ncash.rate[t+h|t]", ylab="h", zlab="\npredictive densities of cash rate", shade=NA, border=NA, ticktype="detailed", nticks=3,cex.lab=1, col=NA,plot=FALSE)
+perspbox (x=x, y=yy, z=z, bty="f", col.axis="black", phi=phi, theta=theta, xlab="\ncash rate[t+h|t]", ylab="h", zlab="\npredictive densities of cash rate", ticktype="detailed", nticks=3,cex.lab=1, col = NULL, plot = TRUE)
+polygon3D(x=c(interval.f[1,],interval.f[2,h:1]), y=c(1:h,h:1), z=rep(0,2*h), col = mcxs5, NAcol = "white", border = NA, add = TRUE, plot = TRUE)
+
+for (i in 1:h){
+  f4.l = trans3d(x=x, y=yy[i], z=z[,i], pmat=f4)
+  lines(f4.l, lwd=.5, col="black")
+}
+f4.l1 = trans3d(x=point.f, y=yy, z=0, pmat=f4)
+lines(f4.l1, lwd=2,col=mcxs2)
+```
+
+The above graph shows the 12-step ahead predictive densities for $cpi_{t}$ and $cashr_{t}$ on the extended model. Similar to the basic model, $cpi_{t}$ would keep slowly growing from $\log(4.9)$ when $h=1$, but reaching a slightly lower point $\log(4.94)$ at year 2025 end. This small change in the ending point leads to a large drop in the growth rate, with now being 0.35% over 3 years. $cashr_{t}$ likewise would first increase in the first 3 periods then decrease for the rest 9 periods, however it's more closed to 0 at the end of 2025 rather than clearly showing to be negative. 
+
+Overall, with forests using both models, it looks like $cpi_{t}$ will not return to the annual target, 2-3 per cent by year 2025 end in Australia.  
+
+
 
 ## References {.unnumbered}
