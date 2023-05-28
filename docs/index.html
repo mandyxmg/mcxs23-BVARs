@@ -499,15 +499,15 @@ p(k |Y,X, A,\Sigma) &amp;\sim IG2(\overline{S_{k}}, \overline{v_{k}} ) \\
 <span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">apply</span>(posterior.sample.draws<span class="sc">$</span>A.posterior, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, mean),<span class="dv">6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>          [,1]      [,2]
-[1,]  0.004011 -0.133229
-[2,]  0.979587 -0.010836
-[3,] -0.026342  0.983359</code></pre>
+[1,]  0.117355  0.129449
+[2,]  0.995922 -0.000544
+[3,] -0.001964  0.992443</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">apply</span>(posterior.sample.draws<span class="sc">$</span>Sigma.posterior, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, mean),<span class="dv">6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>          [,1]      [,2]
-[1,]  1.035240 -0.025749
-[2,] -0.025749  1.013894</code></pre>
+<pre><code>         [,1]     [,2]
+[1,] 0.953227 0.018788
+[2,] 0.018788 1.003323</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -531,15 +531,15 @@ p(k |Y,X, A,\Sigma) &amp;\sim IG2(\overline{S_{k}}, \overline{v_{k}} ) \\
 <span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">apply</span>(posterior.ext<span class="sc">$</span>A.posterior.exten[,,(S1<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span>S2], <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, mean),<span class="dv">6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>          [,1]      [,2]
-[1,]  0.001378 -0.134984
-[2,]  0.979522 -0.010807
-[3,] -0.026456  0.983308</code></pre>
+[1,]  0.120703  0.129827
+[2,]  0.995930 -0.000739
+[3,] -0.002109  0.992580</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">apply</span>(posterior.ext<span class="sc">$</span>Sigma.posterior.exten[,,(S1<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span>S2], <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, mean),<span class="dv">6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>          [,1]      [,2]
-[1,]  1.035345 -0.028356
-[2,] -0.028356  1.013892</code></pre>
+<pre><code>         [,1]     [,2]
+[1,] 0.952610 0.017518
+[2,] 0.017518 1.005319</code></pre>
 </div>
 </div>
 </section>
