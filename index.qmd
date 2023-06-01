@@ -475,7 +475,7 @@ for (s in 1:total_S){
     
     # posterior draws for k
     if (s!=total_S){
-    S.k.bar                = sum(diag( solve( Sigma.posterior[,,s] ) * t(A.posterior[,,s]-A.prior)%*%diag(1/diag(V.prior))%*%(A.posterior[,,s]-A.prior) )) + S.k.prior
+    S.k.bar                = sum(diag( Sigma.posterior.IW[,,1] * t(A.posterior[,,s]-A.prior)%*%diag(1/diag(V.prior))%*%(A.posterior[,,s]-A.prior) )) + S.k.prior
     nu.k.bar               = (1+p*N)*N+ nu.k.prior 
     k.draw.tmp             = rchisq(1, df=nu.k.bar)
     k.draw                 = S.k.bar/k.draw.tmp
