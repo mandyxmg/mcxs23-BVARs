@@ -15,11 +15,11 @@ bibliography: references.bib
 
 ## Objectives & Motivations
 
-Since post pandemic, the inflation in Australia has increased largely, reaching at 7.8% per annual reported in the December quarter of 2022, becoming the highest rate in over 30 years [Australian Financial Review Business Summit](https://www.rba.gov.au/speeches/2023/sp-gov-2023-03-08.html#:~:text=In%20the%20December%20quarter%2C%20the,in%20more%20than%20three%20decades.). Given a high inflation can have negative impact in many aspects, such as reducing the consumer's purchasing power, and changing spending behaviour and investment decisions, it is not only a problem that every central bank is now aiming to deal with in order to achieve the price stability and the sustainable economic growth, but also can each one of us get to know how it will evolve in the future as it relates closely to our daily life.
+Following the pandemic, inflation in Australia has rapidly increased, peaking at 7.8 percent in the Q4 2022, the highest rate in over 30 years [Australian Financial Review Business Summit](https://www.rba.gov.au/speeches/2023/sp-gov-2023-03-08.html#:~:text=In%20the%20December%20quarter%2C%20the,in%20more%20than%20three%20decades.). This inflationary environment risks negative economic consequences such as reduced consumer purchasing power, as well as distortions in spending behaviour and investment decisions. This is a problem not only for central banks mandated to protect price stability and sustainable economic growth, but also for individuals who need to be informed about how prices (which directly affects our daily lives) will likely evolve in the future.
 
-The objective of this research project is to apply Bayesian VARs model in 10 economic variables to forecast inflation through the dynamic interaction. 
+The objective of this research project is to forecast inflation using its dynamic interaction with 9 other economic variables, using a Bayesian vector autoregression (BVAR) model.
 
-The questions to address is "what's the inflation in the next three years, and how soon the current inflation can return to the annual target, that is, 2 to 3 per cent in Australia?".
+With this, we hope to address questions such as *"what would be the inflation rate in the next three years"* and *"how soon will inflation in Australia return to the annual target n 2 to 3 percent?"*
 
 ## Data & Data Properties
 
@@ -39,9 +39,10 @@ library(mvtnorm)
 library(plot3D)
 library(MASS)
 library(HDInterval)
+library(plotly) # for 3D plot
 ```
 
-The 10 economic variables of interest are listed below, 
+The 10 economic variables of interest are listed below,
 
 -   $cpi_{t}$: the Consumer Price Index from the Australian Bureau of Statistics (ABS),
 
@@ -145,16 +146,23 @@ variables_all             = na.omit(merge(cpi_tmp, cashr_tmp, gdp_tmp, lbr_tmp, 
 colnames(variables_all)   = c("cpi_tmp", "cashr_tmp", "gdp_tmp", "lbr_tmp", "unem_tmp", "constru_tmp","corpft_tmp", "export_tmp", "import_tmp", "arri_tmp")
 ```
 
-A time series plot is displayed below to visualize how the 10 proposed variables vary in the past 33 years starting from September 1990 to December 2022.
+Quarterly time series plots are displayed below to visualize how the 10 proposed variables vary in the past 33 years starting from September 1990 to December 2022.
 
 ```{r plot}
 #| echo: false
 #| message: false
 #| warning: false
 
-par(mfcol = c(3, 4))
-for (i in 1:10){ 
-ts.plot(variables_all[,i], ylab =colnames(variables_all)[i])
+par(mfcol = c(3, 2), mar=c(2,2,2,2))
+for (i in 1:6){ 
+ts.plot(variables_all[,i], main =colnames(variables_all)[i], 
+        ylab = "", xlab = "")
+}
+
+par(mfrow = c(3, 2), mar=c(2,2,2,2))
+for (i in 7:10){ 
+ts.plot(variables_all[,i], main =colnames(variables_all)[i], 
+        ylab = "", xlab = "")
 }
 ```
 
@@ -165,11 +173,20 @@ The autocorrelation plot is presented below. It is clear that all variable show 
 #| message: false
 #| warning: false
 #| 
-par(mfcol = c(3, 4))
-for (i in 1:10){
+par(mfcol = c(3, 2), mar=c(2,2,2,2))
+for (i in 1:6){
 acf = acf(variables_all[,i], plot = FALSE)
-plot(acf, main = colnames(variables_all)[i])
+plot(acf, main = "")
+title(main = paste(colnames(variables_all)[i]), line = 0.5)
 }
+
+par(mfrow = c(3, 2), mar=c(2,2,2,2))
+for (i in 7:10){
+acf = acf(variables_all[,i], plot = FALSE)
+plot(acf, main = "")
+title(main = paste(colnames(variables_all)[i]), line = 0.5)
+}
+
 ```
 
 A formal Augmented Dickey-Fuller (i.e. ADF) test is performed to test the stationarity of the variables.
@@ -205,7 +222,7 @@ adf.results = round(adf$p.value,2)
 adf.results
 ```
 
-According to the ADF test results, most of the variables, expect for $cpi_{t}$ and $cashr_{t}$, are integrated at 1. This leads to applying the Minnesota prior in the model, which specify the stylised facts, such as unit root non-stationary. 
+According to the ADF test results, most of the variables, expect for $cpi_{t}$ and $cashr_{t}$, are integrated at order 1. This supports the use of the Minnesota prior specification, which is appropriate for unit root non-stationary variables.
 
 ## Model and Hypotheses
 
@@ -215,7 +232,7 @@ The basic model equation we will build upon throughout the research project is s
 
 -   $X$ is a $T \times K$ matrix with $T$ referring to the periods of time and $K = 1+10 \times P$ referring to $1$ intercept and $10$ variables, each of which has $p$ lags.
 
--   $A$ is a $K \times N$ matrix with $K$ corresponding to the total number of coefficients in each equation. 
+-   $A$ is a $K \times N$ matrix with $K$ corresponding to the total number of coefficients in each equation.
 
 -   $E$ is a $T \times 10$ matrix referring to the error term in each of the equation.
 
@@ -229,15 +246,13 @@ Y &= XA + E \\
 E |X  &\sim MN_{T \times 10 } (\textbf{0}_{T\times 10}, \Sigma , I_{T}) \\
 \end{align}
 ```
-
-
 ## Modelling Framework
 
 ### Basic Model
 
 The basic model is built on the natural-conjugate prior distribution, which is specified as a matrix normal inverse Wishart distribution. Miranda-Agrippino and Ricco (2018) assert that "in scientific data analysis, priors on the model coefficients do not incorporate the investigator's 'subjective' beliefs, instead, they summarise stylised representations of the data generating process". Therefore, Minnesota prior expressing such stylised facts, e.g. unit root non-stationary, discovered in the macroeconomic time series is applied to form the specifications on the parameters of the prior distribution.
 
-Below presents the estimation procedures to draw posterior samples.
+The estimation procedures to draw from the posterior follows the steps below:
 
 **Step 1**: Prior distribution is presented below. We will specify $\underline{A}$, $\underline{V}$, $\underline{S}$ and $\underline{v}$.
 
@@ -275,7 +290,6 @@ p(A|Y,X,\Sigma)&\sim MN_{K\times N}(\overline{A}, \Sigma,\overline{V} ) \\
 p(\Sigma|Y,X)&\sim IW_{N}(\overline{S}, \overline{v})
 \end{align}
 ```
-
 ```{=tex}
 \begin{align}
 \overline{V} &= (X'X + \underline{V}^{-1})^{-1} \\
@@ -320,6 +334,7 @@ nu.prior    = N+1
 #| echo: true
 #| message: false
 #| warning: false
+
 ## Posterior sample draw function 
 posterior.draws = function (S, Y, X){
     # normal-inverse Wishard posterior parameters
@@ -370,10 +385,9 @@ p(\Sigma) &\sim IW_{N}(\underline{S},\underline{v})\\
 p(k) &\sim IG2(\underline{S_{k}}, \underline{v_{k}} ) \\ 
 \end{align}
 ```
-
 We multiply the corresponding distribution probability density functions (i.e. pdf) of $L(Y,X|A,\Sigma)p(A|\Sigma, k)p(\Sigma)p(k)$, the kernel of the posterior distribution is written as below.
 
-1. The kernel of the fully conditional posterior distribution of $A$ and $\Sigma$ is as below.
+1.  The kernel of the fully conditional posterior distribution of $A$ and $\Sigma$ is as below.
 
 ```{=tex}
 \begin{align}
@@ -382,8 +396,7 @@ p(A,\Sigma |Y,X, k) &\propto L(Y,X|A,\Sigma)p(A |\Sigma, k)p(\Sigma) \\
 &\exp\left\{ -\frac{1}{2} TR[\Sigma^{-1}[(A-\overline{A})'\overline{V}^{-1}(A-\overline{A})+\underline{S}+Y'Y+\underline{A}'(k\underline{V})^{-1}\underline{A}-\overline{A}'\overline{V}^{-1}\overline{A}]  ] \right\} \\
 \end{align}
 ```
-
-2. The kernel of the fully conditional posterior distribution of $k$ is as below.
+2.  The kernel of the fully conditional posterior distribution of $k$ is as below.
 
 ```{=tex}
 \begin{align}
@@ -392,14 +405,12 @@ p(k |Y,X,A,\Sigma ) &\propto L(Y,X|A,\Sigma)p(A,\Sigma, k)\\
 &\propto p(A |\Sigma, k)p(k) 
 \end{align}
 ```
-
 ```{=tex}
 \begin{align}
 p(k |Y,X,A,\Sigma ) &\propto \det(k\underline{V})^{-\frac{N}{2}}\exp\left\{-\frac{1}{2}TR[\Sigma^{-1}(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})] \right\} k^{-\frac{\underline{v_{k}+2}}{2}}\exp\left\{ -\frac{1}{2}\frac{\underline{S_{k}}}{k} \right\} \\
 & = k^{-\frac{kN+\underline{v_{k}+2}}{2}}\exp\left\{-\frac{1}{2}\frac{TR[\Sigma^{-1}(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})]+\underline{S_{k}}}{k} \right\}
 \end{align}
 ```
-
 According to the above two kernels, the equation for each posterior parameter can be written as below.
 
 ```{=tex}
@@ -417,7 +428,6 @@ p(k |Y,X, A,\Sigma) &\sim IG2(\overline{S_{k}}, \overline{v_{k}} ) \\
 
 \end{align}
 ```
-
 Since we don't have an analytical derivation of the joint posterior distribution $p(A,\Sigma, k |Y,X)$, the Gibbs sampler method is applied to generate random draws based on the full conditional posterior distribution of $A$, $\Sigma$ and $k$ as presented above. The steps of the sample draws are explained below.
 
 Initialize $k$ at $k^{(0)}$.
@@ -493,6 +503,7 @@ posterior.ext = posterior.draws.exten(total_S = total_S, Y=Y, X=X)
 ```
 
 ### Model Proof
+
 ```{r test on basic model}
 #| echo: true
 #| message: false
@@ -552,11 +563,11 @@ round(apply(posterior.ext$A.posterior.exten[,,(S1+1):S2], 1:2, mean),6)
 round(apply(posterior.ext$Sigma.posterior.exten[,,(S1+1):S2], 1:2, mean),6)
 ```
 
-### Forecasting 
+### Forecasting
 
-The aim of the forecasting is to predict how the variable of interest $cpi_{t}$ and $cashr_{t}$ are going to evolve in the next three years, that is $h=12$ steps ahead. 
+The aim of the forecasting is to predict how the variable of interest $cpi_{t}$ and $cashr_{t}$ are going to evolve in the next three years, that is $h=12$ steps ahead.
 
-The forecasts are built on both the basic and the extended models and the results are presented below. 
+The forecasts are built from both the basic and the extended models and the results are presented below.
 
 ```{r forecasting static data}
 #| echo: false
@@ -650,6 +661,7 @@ yy          = 1:h
 z           = t(z)
 
 f4    = persp3D(x=x, y=yy, z=z, phi=phi, theta=theta, xlab="\ncpi[t+h|t]", ylab="h", zlab="\npredictive densities of cpi", shade=NA, border=NA, ticktype="detailed", nticks=3,cex.lab=1, col=NA,plot=FALSE)
+
 perspbox (x=x, y=yy, z=z, bty="f", col.axis="black", phi=phi, theta=theta, xlab="\nlog.cpi[t+h|t]", ylab="h", zlab="\npredictive densities of cpi", ticktype="detailed", nticks=3,cex.lab=1, col = NULL, plot = TRUE)
 polygon3D(x=c(interval.f[1,],interval.f[2,h:1]), y=c(1:h,h:1), z=rep(0,2*h), col = mcxs4, NAcol = "white", border = NA, add = TRUE, plot = TRUE)
 
@@ -676,21 +688,88 @@ x           = hist(Y.h[i,2,], breaks=x, plot=FALSE)$mids
 yy          = 1:h
 z           = t(z)
 
-f4    = persp3D(x=x, y=yy, z=z, phi=phi, theta=theta, xlab="\ncash.rate[t+h|t]", ylab="h", zlab="\npredictive densities of cash rate", shade=NA, border=NA, ticktype="detailed", nticks=3,cex.lab=1, col=NA,plot=FALSE)
-perspbox (x=x, y=yy, z=z, bty="f", col.axis="black", phi=phi, theta=theta, xlab="\ncash rate[t+h|t]", ylab="h", zlab="\npredictive densities of cash rate", ticktype="detailed", nticks=3,cex.lab=1, col = NULL, plot = TRUE)
-polygon3D(x=c(interval.f[1,],interval.f[2,h:1]), y=c(1:h,h:1), z=rep(0,2*h), col = mcxs5, NAcol = "white", border = NA, add = TRUE, plot = TRUE)
+f4    = persp3D(x=x, y=yy, z=z, phi=phi, theta=theta, xlab="\ncpi[t+h|t]", ylab="h", zlab="\npredictive densities of cpi", shade=NA, border=NA, ticktype="detailed", nticks=3,cex.lab=1, col=NA,plot=FALSE)
+
+perspbox (x=x, y=yy, z=z, bty="f", col.axis="black", phi=phi, theta=theta, xlab="\nlog.cpi[t+h|t]", ylab="h", zlab="\npredictive densities of cpi", ticktype="detailed", nticks=3,cex.lab=1, col = NULL, plot = TRUE)
+polygon3D(x=c(interval.f[1,],interval.f[2,h:1]), y=c(1:h,h:1), z=rep(0,2*h), col = mcxs4, NAcol = "white", border = NA, add = TRUE, plot = TRUE)
 
 for (i in 1:h){
   f4.l = trans3d(x=x, y=yy[i], z=z[,i], pmat=f4)
-  lines(f4.l, lwd=.5, col="black")
+  lines(f4.l, lwd=0.5, col="black")
 }
 f4.l1 = trans3d(x=point.f, y=yy, z=0, pmat=f4)
-lines(f4.l1, lwd=2,col=mcxs2)
+lines(f4.l1, lwd=2, col=mcxs1)
 ```
-The above graph shows the 12-step ahead predictive densities for $cpi_{t}$ and $cashr_{t}$ on the basic model. It can be clearly seen that $cpi_{t}$ would keep slowly growing from $\log(4.9)$ when $h=1$ to roughly $\log(4.95)$ reaching the end 2025, indicating a 0.44% (i.e. $\log(4.95) - \log(4.9)$ growth rate over 3 years time. 
 
-However, $cashr_{t}$ moves differently. It would first increase in the first 3 periods then decrease for the rest 9 periods, reaching below 0 at the end of 2025. The negative $cashr_{t}$ might be unconventional, however the general way of how it evolves over time is in line with the expectation. 
+The above graph shows the 12-step ahead predictive densities for $cpi_{t}$ and $cashr_{t}$ on the basic model. It can be clearly seen that $cpi_{t}$ would keep slowly growing from $\log(4.9)$ when $h=1$ to roughly $\log(4.95)$ reaching the end 2025, indicating a 0.44% (i.e. $\log(4.95) - \log(4.9)$ growth rate over 3 years time.
 
+However, $cashr_{t}$ moves differently. It would first increase in the first 3 periods then decrease for the rest 9 periods, reaching below 0 at the end of 2025. The negative $cashr_{t}$ might be unconventional, however the general way of how it evolves over time is in line with the expectation.
+
+Interactive versions of the above 3D plots are provided below to allow access to alternative vantage points:
+
+```{r forecasting plot basic model-plot_ly}
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| code-summary: "show code"
+
+## Forecasting plotting      
+mcxs1  = "#05386B"
+mcxs2  = "#379683"
+mcxs3  = "#5CDB95"
+mcxs4  = "#8EE4AF"
+mcxs5  = "#EDF5E1"
+
+# Log CPI forecasting 
+limits.1    = range(Y.h[,1,])
+point.f     = apply(Y.h[,1,],1,mean)
+interval.f  = apply(Y.h[,1,],1,hdi,credMass=0.90)
+theta = 180
+phi   = 15.5
+
+x.cpi           = seq(from=limits.1[1], to=limits.1[2], length.out=100)
+z.cpi           = matrix(NA,h,99)
+for (i in 1:h){
+  z.cpi[i,]     = hist(Y.h[i,1,], breaks=x.cpi, plot=FALSE)$density
+}
+x.cpi           = hist(Y.h[i,1,], breaks=x.cpi, plot=FALSE)$mids
+yy.cpi          = 1:h
+
+# cash rate forecasting 
+limits.1    = range(Y.h[,2,])
+point.f     = apply(Y.h[,2,],1,mean)
+interval.f  = apply(Y.h[,2,],1,hdi,credMass=0.90)
+theta = 180
+phi   = 15.5
+
+x.cr           = seq(from=limits.1[1], to=limits.1[2], length.out=100)
+z.cr           = matrix(NA,h,99)
+for (i in 1:h){
+  z.cr[i,]     = hist(Y.h[i,2,], breaks=x.cr, plot=FALSE)$density
+}
+x.cr           = hist(Y.h[i,2,], breaks=x.cr, plot=FALSE)$mids
+yy.cr          = 1:h
+
+# plot using plot_ly
+par(mfrow=c(1,1))
+plot_ly(y = yy.cpi, x = x.cpi, z=z.cpi) %>%
+  
+  layout(scene=list(xaxis=list(title="cpi"),
+                    yaxis=list(title="h-step forecast"),
+                    zaxis=list(title="density")),
+         title = "CPI forecast densities") %>%
+  add_surface(colors = c(mcxs1,mcxs4,mcxs5))
+
+  
+plot_ly(y = yy.cr, x = x.cr, z=z.cr) %>%
+  
+  layout(scene=list(xaxis=list(title="cash rate"),
+                    yaxis=list(title="h-step forecast"),
+                    zaxis=list(title="density")),
+         title = "Cash rate forecast densities") %>%
+  add_surface(colors = c(mcxs1,"magenta2",mcxs5))
+```
 
 ```{r forecasting on extended model}
 #| echo: true
@@ -796,10 +875,8 @@ f4.l1 = trans3d(x=point.f, y=yy, z=0, pmat=f4)
 lines(f4.l1, lwd=2,col=mcxs2)
 ```
 
-The above graph shows the 12-step ahead predictive densities for $cpi_{t}$ and $cashr_{t}$ on the extended model. Similar to the basic model, $cpi_{t}$ would keep slowly growing from $\log(4.9)$ when $h=1$, but reaching a slightly lower point $\log(4.94)$ at year 2025 end. This small change in the ending point leads to a large drop in the growth rate, with now being 0.35% over 3 years. $cashr_{t}$ likewise would first increase in the first 3 periods then decrease for the rest 9 periods, however it's more closed to 0 at the end of 2025 rather than clearly showing to be negative. 
+The above graph shows the 12-step ahead predictive densities for $cpi_{t}$ and $cashr_{t}$ on the extended model. Similar to the basic model, $cpi_{t}$ would keep slowly growing from $\log(4.9)$ when $h=1$, but reaching a slightly lower point $\log(4.94)$ at year 2025 end. This small change in the ending point leads to a large drop in the growth rate, with now being 0.35% over 3 years. $cashr_{t}$ likewise would first increase in the first 3 periods then decrease for the rest 9 periods, however it's more closed to 0 at the end of 2025 rather than clearly showing to be negative.
 
-Overall, with forests using both models, it looks like $cpi_{t}$ will not return to the annual target, 2-3 per cent by year 2025 end in Australia.  
-
-
+Overall, forecasts from both models do not predict price levels returning to the annual target of 2-3 percent by 2025.
 
 ## References {.unnumbered}
