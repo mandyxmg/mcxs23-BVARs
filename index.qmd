@@ -432,7 +432,7 @@ Repeat steps 1 and 2 $S_{1} + S_{2}$ times.
 
 Discard the first $S_{1}$ draws that allows the algorithm to converge to the stationary posterior distribution.
 
-Output is the sample draws from the joint posterior distribution $\left\{ {A^{(s)}, \Sigma^{(s)}, k^{(s)}} \right\}^{S_{2}}_{s=S_{1}+1}$.
+Output is the sample draws from the joint posterior distribution $\left\{ {A^{(s)}, \Sigma^{(s)}, k^{(s)}} \right\}^{S_{1}+S_{2}}_{s=S_{1}+1}$.
 
 The above steps are summarised in the below code to generate the sample draws from the joint posterior distribution.
 
