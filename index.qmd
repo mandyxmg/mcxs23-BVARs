@@ -235,7 +235,7 @@ E |X  &\sim MN_{T \times 10 } (\textbf{0}_{T\times 10}, \Sigma , I_{T}) \\
 
 ### Basic Model
 
-The basic model is built on the natural-conjugate prior distribution, which is specified as a matrix normal inverse Wishart distribution. Miranda-Agrippino and Ricco (2018) assert that "in scientific data analysis, priors on the model coefficients do not incorporate the investigator's 'subjective' beliefs, instead, they summarise stylised representations of the data generating process". Therefore, Minnesota prior expressing such stylised facts, e.g. unit root non-stationary, discovered in the macroeconomic time series is applied to form the specifications on the parameters of the prior distribution.
+The basic model is built on the natural-conjugate prior distribution, which is specified as a matrix normal inverse Wishart distribution. @BayesianVectorAutoregressionsEstimation assert that "in scientific data analysis, priors on the model coefficients do not incorporate the investigator's 'subjective' beliefs, instead, they summarise stylised representations of the data generating process". Therefore, Minnesota prior expressing such stylised facts, e.g. unit root non-stationary, discovered in the macroeconomic time series is applied to form the specifications on the parameters of the prior distribution.
 
 Below presents the estimation procedures to draw posterior samples.
 
