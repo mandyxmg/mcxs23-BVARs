@@ -35,10 +35,10 @@ library(TSstudio)
 library(xts)
 library(tseries)
 library(mvtnorm)
-library(mvtnorm)
 library(plot3D)
 library(MASS)
 library(HDInterval)
+library(mgcv)
 ```
 
 The 10 economic variables of interest are listed below, 
@@ -412,7 +412,7 @@ p(k |Y,X, A,\Sigma) &\sim IG2(\overline{S_{k}}, \overline{v_{k}} ) \\
 \overline{A} &= \overline{V}(X'Y+(k\underline{V})^{-1}\underline{A}) \\
 \overline{v} &= T+\underline{v}\\
 \overline{S} &= \underline{S}+Y'Y+\underline{A}'(k\underline{V})^{-1}\underline{A}-\overline{A}'\overline{V}^{-1}\overline{A} \\
-\overline{v_{k}} &= kN + \underline{v_{k}}\\
+\overline{v_{k}} &= KN + \underline{v_{k}}\\
 \overline{S_{k}} &= TR[\Sigma^{-1}(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})]+\underline{S_{k}}\\
 
 \end{align}
@@ -450,7 +450,7 @@ k.posterior       = matrix(NA, S1+S2, 1)
 
 k.posterior[1]    = 10                         # set k0 
 
-# Prior IG2 distribution: kappa
+# Prior IG2 distribution: kappa; set up based on the expectation and variance of IG2 distribution
 S.k.prior   = 2
 nu.k.prior  = 4
 
@@ -488,8 +488,187 @@ for (s in 1:total_S){
   
 ## Applying function 
 posterior.ext = posterior.draws.exten(total_S = total_S, Y=Y, X=X)
-# round(apply(posterior.ext$A.posterior.exten[,,(S1+1):S2], 1:2, mean),6)
-# round(apply(posterior.ext$Sigma.posterior.exten[,,(S1+1):S2], 1:2, mean),6)
+round(apply(posterior.ext$A.posterior.exten[,,(S1+1):S2], 1:2, mean),6)
+round(apply(posterior.ext$Sigma.posterior.exten[,,(S1+1):S2], 1:2, mean),6)
+```
+
+### Heteroskedasticity Model
+
+The model specification is as below. 
+
+```{=tex}
+\begin{align}
+Y &= XA + E \\
+\end{align}
+```
+```{=tex}
+\begin{align}
+E |X  &\sim MN_{T \times 10 } (\textbf{0}_{T\times 10}, \Sigma , diag(\sigma_{T}^{2})) \\
+\end{align}
+```
+
+Building upon the extended model, the posterior equations can now be written as, 
+
+```{=tex}
+\begin{align}
+\overline{V} &= (X'diag(\sigma_{T}^{2})^{-1}X + (k\underline{V})^{-1})^{-1}\\
+\overline{A} &= \overline{V}(X'diag(\sigma_{T}^{2})^{-1}Y+(k\underline{V})^{-1}\underline{A}) \\
+\overline{v} &= T+\underline{v}\\
+\overline{S} &= \underline{S}+Y'diag(\sigma_{T}^{2})^{-1}Y+\underline{A}'(k\underline{V})^{-1}\underline{A}-\overline{A}'\overline{V}^{-1}\overline{A} \\
+\overline{v_{k}} &= KN + \underline{v_{k}}\\
+\overline{S_{k}} &= TR[\Sigma^{-1}(A-\underline{A})'\underline{V}^{-1}(A-\underline{A})]+\underline{S_{k}}\\
+\end{align}
+```
+
+```{r heteroskedasticity based on extended model}
+### Setup heteroskedasticity
+S1          = 0                              # determine the burn-in draws
+S2          = 20                             # number of draws from the final simulation
+total_S     = S1+S2
+
+S.k.prior         = 3                        # Prior IG2 distribution: kappa; set up based on the expectation and variance of IG2 distribution
+nu.k.prior        = 5
+
+T             = dim(Y)[1]
+N             = dim(Y)[2]
+K             = dim(X)[2]
+
+H             = diag(T)
+sdiag(H,-1)   =  -1
+HH            = 2*diag(T)
+sdiag(HH,-1)  =  -1
+sdiag(HH,1)   =  -1
+
+priors         = list(
+  A.prior  = A.prior,
+  V.prior  = V.prior,
+  S.prior  = S.prior,
+  nu.prior = nu.prior,
+  HH       = HH,
+  h0.m     = 0,
+  h0.v     = 1,
+  sigmav.s = 1,
+  sigmav.nu= 1
+)
+
+### Posterior sample draw function for heteroskedasticity on extended model  
+posterior.draw.heter = function (total_S, Y, X, priors){
+
+  posteriors      = list(                        
+    H           = matrix(NA,T,total_S),
+    sigma2      = matrix(NA,T,total_S),
+    s           = matrix(NA,T,total_S),
+    h0          = rep(NA,total_S),
+    sigma.v2    = rep(NA,total_S),
+    A           = array(NA, c(K,N,total_S)),
+    Sigma       = array(NA, c(N,N,total_S)),
+    kappa       = rep(NA, total_S)
+  )
+  
+  aux = list(
+    Y        = Y,
+    X        = X,
+    H        = matrix(1,T,1),
+    h0       = 0,
+    sigma.v2 = 1,
+    s        = matrix(1,T,1),
+    A        = matrix(0, K, N),
+    Sigma    = matrix(0, N, N),              # diag(N),
+    sigma2   = matrix(1,T,1),
+    kappa = 1
+  )
+  
+  for (s in 1:total_S){
+      # normal-inverse Wishard posterior parameters
+      V.bar.inv              = t(aux$X)%*%diag(1/as.vector(aux$sigma2))%*%aux$X + diag(1/ diag( aux$kappa* priors$V.prior))
+      V.bar                  = solve(V.bar.inv)
+      A.bar                  = V.bar%*%(t(aux$X)%*%diag(1/as.vector(aux$sigma2))%*%aux$Y + diag(1/diag( aux$kappa* priors$V.prior))%*%priors$A.prior)
+      nu.bar                 = T + priors$nu.prior
+      S.bar                  = priors$S.prior + t(aux$Y)%*%diag(1/as.vector(aux$sigma2))%*%aux$Y + t(priors$A.prior)%*%diag(1/diag(aux$kappa* priors$V.prior))%*%priors$A.prior - t(A.bar)%*%V.bar.inv%*%A.bar
+      S.bar.inv              = solve(S.bar)
+    
+      # posterior draws for A and Sigma
+      Sigma.posterior.IW     = rWishart(1, df=nu.bar, Sigma=S.bar.inv)
+      Sigma.posterior.draw   = apply(Sigma.posterior.IW, 3 ,solve)
+      aux$Sigma              = array(Sigma.posterior.draw,c(N,N,1))
+      A.norm                 = array(rnorm(prod(c(K,N,1))),c(K,N,1))
+      L                      = t(chol(V.bar))
+      aux$A                  = A.bar + L%*%A.norm[,,1]%*%chol(aux$Sigma[,,1])
+    
+      # posterior draws for k
+      S.k.bar                = sum(diag( solve( aux$Sigma[,,1] ) * t(aux$A-priors$A.prior)%*%diag(1/diag(priors$V.prior))%*%(aux$A-priors$A.prior) )) + S.k.prior
+      nu.k.bar               = K*N+ nu.k.prior 
+      k.draw.tmp             = rchisq(1, df=nu.k.bar)
+      k.draw                 = S.k.bar/k.draw.tmp
+      aux$kappa              = k.draw
+ 
+      # posterior draw for sigma2   
+      N             = dim(aux$Y)[2]
+      alpha.st      = c(1.92677,1.34744,0.73504,0.02266,0-0.85173,-1.97278,-3.46788,-5.55246,-8.68384,-14.65000)
+      sigma.st      = c(0.11265,0.17788,0.26768,0.40611,0.62699,0.98583,1.57469,2.54498,4.16591,7.33342)
+      pi.st         = c(0.00609,0.04775,0.13057,0.20674,0.22715,0.18842,0.12047,0.05591,0.01575,0.00115)
+      
+      Lambda        = solve(chol(aux$Sigma[,,1]))
+      Z             = rowSums( ( aux$Y - aux$X %*% aux$A ) %*% Lambda ) / sqrt(N)
+      Y.tilde       = as.vector(log((Z + 0.0000001)^2))
+      Ytilde.alpha  = as.matrix(Y.tilde - alpha.st[as.vector(aux$s)])
+        
+      # sampling initial condition
+      V.h0.bar      = 1/((1 / priors$h0.v) + (1 / aux$sigma.v2))
+      m.h0.bar      = V.h0.bar*((priors$h0.m / priors$h0.v) + (aux$H[1] / aux$sigma.v2))
+      h0.draw       = rnorm(1, mean = m.h0.bar, sd = sqrt(V.h0.bar))
+      aux$h0        = h0.draw
+      
+      # sampling sigma.v2
+      sigma.v2.s    = priors$sigmav.s + sum(c(aux$H[1] - aux$h0, diff(aux$H))^2)
+      sigma.v2.draw = sigma.v2.s / rchisq(1, priors$sigmav.nu + T)
+      aux$sigma.v2  = sigma.v2.draw
+      
+      # sampling auxiliary states
+      Pr.tmp        = simplify2array(lapply(1:10,function(x){
+        dnorm(Y.tilde, mean = as.vector(aux$H + alpha.st[x]), sd = sqrt(sigma.st[x]), log = TRUE) + log(pi.st[x])
+      }))
+      Pr            = t(apply(Pr.tmp, 1, function(x){exp(x - max(x)) / sum(exp(x - max(x)))}))
+      s.cum         = t(apply(Pr, 1, cumsum))
+      r             = matrix(rep(runif(T), 10), ncol = 10)
+      ss            = apply(s.cum < r, 1, sum) + 1
+      aux$s         = as.matrix(ss)
+      
+      # sampling log-volatilities using functions for tridiagonal precision matrix
+      Sigma.s.inv   = diag(1 / sigma.st[as.vector(aux$s)])
+      D.inv         = Sigma.s.inv + (1 / aux$sigma.v2) * priors$HH
+      b             = as.matrix(Ytilde.alpha / sigma.st[as.vector(aux$s)] + (aux$h0/aux$sigma.v2)*diag(T)[,1])
+      lead.diag     = diag(D.inv)
+      sub.diag      = mgcv::sdiag(D.inv, -1)
+      D.chol        = mgcv::trichol(ld = lead.diag, sd = sub.diag)
+      D.L           = diag(D.chol$ld)
+      mgcv::sdiag(D.L,-1) = D.chol$sd
+      x             = as.matrix(rnorm(T))
+      a             = forwardsolve(D.L, b)
+      draw          = backsolve(t(D.L), a + x)
+      aux$H         = as.matrix(draw)
+      aux$sigma2    = as.matrix(exp(draw))
+        
+      # output list
+      posteriors$H[,s]             = aux$H
+      posteriors$sigma2[,s]        = aux$sigma2
+      posteriors$s[,s]             = aux$s
+      posteriors$h0[s]             = aux$h0
+      posteriors$sigma.v2[s]       = aux$sigma.v2
+      posteriors$A[,,s]            = aux$A
+      posteriors$Sigma[,,s]        = aux$Sigma
+      posteriors$kappa[s]          = aux$kappa
+  }
+        
+  return(posteriors)
+}
+
+### Applying function 
+posterior.heter = posterior.draw.heter(total_S = total_S, Y = Y, X = X, priors = priors)
+round(apply(posterior.heter$A[,,(S1+1):S2], 1:2, mean),6)
+round(apply(posterior.heter$Sigma[,,(S1+1):S2], 1:2, mean),6)
+round(mean(posterior.heter$kappa[(S1+1):S2]), 6)
+round(apply(posterior.heter$sigma2[,(S1+1):S2], 1, mean),6)
 ```
 
 ### Model Proof
@@ -552,6 +731,7 @@ round(apply(posterior.ext$A.posterior.exten[,,(S1+1):S2], 1:2, mean),6)
 round(apply(posterior.ext$Sigma.posterior.exten[,,(S1+1):S2], 1:2, mean),6)
 ```
 
+
 ### Forecasting 
 
 The aim of the forecasting is to predict how the variable of interest $cpi_{t}$ and $cashr_{t}$ are going to evolve in the next three years, that is $h=12$ steps ahead. 
@@ -600,11 +780,6 @@ Sigma.posterior.simu   = posterior.sample.draws$Sigma.posterior
 h                 = 12
 S                 = 50000
 Y.h               = array(NA,c(h,N,S))
-
-# to calculate A.bar
-V.bar.inv   = t(X)%*%X + diag(1/diag(V.prior))
-V.bar       = solve(V.bar.inv)
-A.bar       = V.bar%*%(t(X)%*%Y + diag(1/diag(V.prior))%*%A.prior)
 
 # sampling predictive density
 for (s in 1:S){
@@ -741,6 +916,7 @@ for (s in 1:S){
 #| message: false
 #| warning: false
 ## Extended Model Forecasting plotting  
+
 # par(mfcol = c(1, 2))
 # Log CPI forecasting 
 limits.1    = range(Y.h.ext[,1,])
@@ -800,6 +976,127 @@ The above graph shows the 12-step ahead predictive densities for $cpi_{t}$ and $
 
 Overall, with forests using both models, it looks like $cpi_{t}$ will not return to the annual target, 2-3 per cent by year 2025 end in Australia.  
 
+```{r forecasting on extended model - heteroskedasticity}
+#| echo: true
+#| message: false
+#| warning: false
+
+### Setup heteroskedasticity
+S1          = 0                              # determine the burn-in draws
+S2          = 20                             # number of draws from the final simulation
+total_S     = S1+S2
+
+S.k.prior         = 3                        # Prior IG2 distribution: kappa; set up based on the expectation and variance of IG2 distribution
+nu.k.prior        = 5
+
+T             = dim(Y)[1]
+N             = dim(Y)[2]
+K             = dim(X)[2]
+
+H             = diag(T)
+sdiag(H,-1)   =  -1
+HH            = 2*diag(T)
+sdiag(HH,-1)  =  -1
+sdiag(HH,1)   =  -1
+
+priors         = list(
+  A.prior  = A.prior,
+  V.prior  = V.prior,
+  S.prior  = S.prior,
+  nu.prior = nu.prior,
+  HH       = HH,
+  h0.m     = 0,
+  h0.v     = 1,
+  sigmav.s = 1,
+  sigmav.nu= 1
+)
+
+## Applying function 
+posterior.heter = posterior.draw.heter(total_S = total_S, Y = Y, X = X, priors = priors)
+A.posterior.heter.simu       = posterior.heter$A[,,(S1+1):S2]
+Sigma.posterior.heter.simu   = posterior.heter$Sigma[,,(S1+1):S2]
+
+## Three-year ahead forecasting h=12
+# set up
+h                 = 12
+S                 = 20
+Y.h.heter         = array(NA,c(h,N,S))
+
+# sampling predictive density
+for (s in 1:S){
+  A.posterior.draw     = A.posterior.heter.simu[,,s]
+  Sigma.posterior.draw = Sigma.posterior.heter.simu[,,s]
+    x.Ti               = Y[(nrow(Y)-p+1):nrow(Y),]
+    x.Ti               = x.Ti[p:1,]
+  for (i in 1:h){
+    x.T                = c(1,as.vector(t(x.Ti)))
+    Y.f                = rmvnorm(1, mean = x.T%*%A.posterior.draw, sigma=Sigma.posterior.draw)
+      x.Ti             = rbind(Y.f,x.Ti[1:(p-1),])
+    Y.h.heter[i,,s]    = Y.f[1:N]
+  }
+}
+```
+
+```{r forecasting plot on extended model - heteroskedasticity}
+#| echo: false
+#| message: false
+#| warning: false
+## Extended Model Forecasting plotting  
+
+# par(mfcol = c(1, 2))
+# Log CPI forecasting 
+limits.1    = range(Y.h.heter[,1,])
+point.f     = apply(Y.h.heter[,1,],1,mean)
+interval.f  = apply(Y.h.heter[,1,],1,hdi,credMass=0.90)
+theta = 180
+phi   = 15.5
+x           = seq(from=limits.1[1], to=limits.1[2], length.out=100)
+z           = matrix(NA,h,99)
+for (i in 1:h){
+  z[i,]     = hist(Y.h.heter[i,1,], breaks=x, plot=FALSE)$density
+}
+x           = hist(Y.h.heter[i,1,], breaks=x, plot=FALSE)$mids
+yy          = 1:h
+z           = t(z)
+
+f4          = persp3D(x=x, y=yy, z=z, phi=phi, theta=theta, xlab="\ncpi[t+h|t]", ylab="h", zlab="\npredictive densities of cpi", shade=NA, border=NA, ticktype ="detailed", nticks=3,cex.lab=1, col=NA,plot=FALSE)
+perspbox (x=x, y=yy, z=z, bty="f", col.axis="black", phi=phi, theta=theta, xlab="\nlog.cpi[t+h|t]", ylab="h", zlab="\npredictive densities of cpi", ticktype ="detailed", nticks=3,cex.lab=1, col = NULL, plot = TRUE)
+polygon3D(x=c(interval.f[1,],interval.f[2,h:1]), y=c(1:h,h:1), z=rep(0,2*h), col = mcxs4, NAcol = "white", border = NA, add = TRUE, plot = TRUE)
+
+for (i in 1:h){
+  f4.l = trans3d(x=x, y=yy[i], z=z[,i], pmat=f4)
+  lines(f4.l, lwd=0.5, col="black")
+}
+f4.l1 = trans3d(x=point.f, y=yy, z=0, pmat=f4)
+lines(f4.l1, lwd=2, col=mcxs1)
+
+# cash rate forecasting 
+limits.1    = range(Y.h.heter[,2,])
+point.f     = apply(Y.h.heter[,2,],1,mean)
+interval.f  = apply(Y.h.heter[,2,],1,hdi,credMass=0.90)
+theta = 180
+phi   = 15.5
+
+x           = seq(from=limits.1[1], to=limits.1[2], length.out=100)
+z           = matrix(NA,h,99)
+for (i in 1:h){
+  z[i,]     = hist(Y.h.heter[i,2,], breaks=x, plot=FALSE)$density
+}
+x           = hist(Y.h.heter[i,2,], breaks=x, plot=FALSE)$mids
+yy          = 1:h
+z           = t(z)
+
+f4          = persp3D(x=x, y=yy, z=z, phi=phi, theta=theta, xlab="\ncash.rate[t+h|t]", ylab="h", zlab="\npredictive densities of cash rate", shade=NA, border=NA, ticktype="detailed", nticks=3,cex.lab=1, col=NA,plot=FALSE)
+perspbox (x=x, y=yy, z=z, bty="f", col.axis="black", phi=phi, theta=theta, xlab="\ncash rate[t+h|t]", ylab="h", zlab="\npredictive densities of cash rate", ticktype="detailed", nticks=3,cex.lab=1, col = NULL, plot = TRUE)
+polygon3D(x=c(interval.f[1,],interval.f[2,h:1]), y=c(1:h,h:1), z=rep(0,2*h), col = mcxs5, NAcol = "white", border = NA, add = TRUE, plot = TRUE)
+
+for (i in 1:h){
+  f4.l = trans3d(x=x, y=yy[i], z=z[,i], pmat=f4)
+  lines(f4.l, lwd=.5, col="black")
+}
+f4.l1 = trans3d(x=point.f, y=yy, z=0, pmat=f4)
+lines(f4.l1, lwd=2,col=mcxs2)
+```
 
 
 ## References {.unnumbered}
