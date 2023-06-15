@@ -235,7 +235,7 @@ E |X  &\sim MN_{T \times 10 } (\textbf{0}_{T\times 10}, \Sigma , I_{T}) \\
 
 ### Basic Model
 
-The basic model is built on the natural-conjugate prior distribution, which is specified as a matrix normal inverse Wishart distribution. Miranda-Agrippino and Ricco (2018) assert that "in scientific data analysis, priors on the model coefficients do not incorporate the investigator's 'subjective' beliefs, instead, they summarise stylised representations of the data generating process". Therefore, Minnesota prior expressing such stylised facts, e.g. unit root non-stationary, discovered in the macroeconomic time series is applied to form the specifications on the parameters of the prior distribution.
+The basic model is built on the natural-conjugate prior distribution, which is specified as a matrix normal inverse Wishart distribution. @BayesianVectorAutoregressionsEstimation assert that "in scientific data analysis, priors on the model coefficients do not incorporate the investigator's 'subjective' beliefs, instead, they summarise stylised representations of the data generating process". Therefore, Minnesota prior expressing such stylised facts, e.g. unit root non-stationary, discovered in the macroeconomic time series is applied to form the specifications on the parameters of the prior distribution.
 
 Below presents the estimation procedures to draw posterior samples.
 
@@ -432,7 +432,7 @@ Repeat steps 1 and 2 $S_{1} + S_{2}$ times.
 
 Discard the first $S_{1}$ draws that allows the algorithm to converge to the stationary posterior distribution.
 
-Output is the sample draws from the joint posterior distribution $\left\{ {A^{(s)}, \Sigma^{(s)}, k^{(s)}} \right\}^{S_{2}}_{s=S_{1}+1}$.
+Output is the sample draws from the joint posterior distribution $\left\{ {A^{(s)}, \Sigma^{(s)}, k^{(s)}} \right\}^{S_{1}+S_{2}}_{s=S_{1}+1}$.
 
 The above steps are summarised in the below code to generate the sample draws from the joint posterior distribution.
 
@@ -475,7 +475,7 @@ for (s in 1:total_S){
     
     # posterior draws for k
     if (s!=total_S){
-    S.k.bar                = sum(diag( solve( Sigma.posterior[,,s] ) * t(A.posterior[,,s]-A.prior)%*%diag(1/diag(V.prior))%*%(A.posterior[,,s]-A.prior) )) + S.k.prior
+    S.k.bar                = sum(diag( Sigma.posterior.IW[,,1] * t(A.posterior[,,s]-A.prior)%*%diag(1/diag(V.prior))%*%(A.posterior[,,s]-A.prior) )) + S.k.prior
     nu.k.bar               = (1+p*N)*N+ nu.k.prior 
     k.draw.tmp             = rchisq(1, df=nu.k.bar)
     k.draw                 = S.k.bar/k.draw.tmp
