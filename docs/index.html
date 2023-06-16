@@ -191,7 +191,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </blockquote>
 <section id="objectives-motivations" class="level2">
 <h2 class="anchored" data-anchor-id="objectives-motivations">Objectives &amp; Motivations</h2>
-<p>Following the pandemic, inflation in Australia has rapidly increased and peaked at 7.8 percent in 2022 Quarter 4, becoming the highest rate in over 30 years. This inflationary environment risks negative economic consequences such as reduced consumer purchasing power, as well as distortions in spending behaviour and investment decisions. This is a problem not only for central banks mandated to protect price stability and sustainable economic growth, but also for individuals who need to be informed about how prices (which directly affects our daily lives) will likely evolve in the future.</p>
+<p>Following the pandemic of COVID-19, the inflation in Australia has rapidly increased and peaked at 7.8 percent in 2022 Quarter 4, becoming the highest rate in over 30 years. This inflationary environment risks negative economic consequences such as reduced consumer purchasing power, as well as distortions in spending behaviour and investment decisions. This is a problem not only for central banks mandated to protect price stability and sustainable economic growth, but also for individuals who need to be informed about how prices (which directly affects our daily lives) will likely evolve in the future.</p>
 <p>The objective of this research project is to forecast inflation using its dynamic interaction with 9 other economic variables, using Bayesian VARs models.</p>
 <p>With this, we hope to address questions such as <em>“what would be the inflation rate in the next three years?”</em> and <em>“how soon will inflation in Australia return to the annual target 2 to 3 percent?”</em>.</p>
 </section>
@@ -220,7 +220,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><img src="index_files/figure-html/all variables plot-2.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Most of the variables display an upward trend, with <span class="math inline">\(cashr_{t}\)</span> and <span class="math inline">\(unem_{t}\)</span> trending downwards. This strong trending pattern indicates that all the variables might integrate at 1, to know which, a formal Augmented Dickey-Fuller (ADF) test is conducted in the following section. <span class="math inline">\(corpft_{t}\)</span> and <span class="math inline">\(arri_{t}\)</span> exhibit the seasonality effect with a large drop at around Year 2021, which is a reflection of the start of the pandemic.</p>
+<p>Most of the variables display an upward trend, with <span class="math inline">\(cashr_{t}\)</span> and <span class="math inline">\(unem_{t}\)</span> trending downwards. This strong trending pattern indicates that all the variables might integrate at 1, to know which, a formal Augmented Dickey-Fuller (ADF) test is conducted in the following section. <span class="math inline">\(corpft_{t}\)</span> and <span class="math inline">\(arri_{t}\)</span> exhibit the seasonality effect with a large drop at around 2021, reflecting the start of the pandemic.</p>
 <p>The autocorrelation (ACF) plot is presented below.</p>
 <div class="cell">
 <div class="cell-output-display">
@@ -291,7 +291,7 @@ CPI           0.01</code></pre>
 </div>
 <p>According to the ADF test results, all the variables are integrated at order 1, with <span class="math inline">\(cpi_{t}\)</span> integrating at 2 and <span class="math inline">\(cashr_{t}\)</span> being stationary.</p>
 <p>To keep consistency, the first difference is taken on all variables. The whole dataset is now stationary with only <span class="math inline">\(cpi_{t}\)</span> being integrated at 1. We will address this in the Minnesota prior setup in the later section.</p>
-<p>After the transformation, sub-dataset is presented as a reference.</p>
+<p>After the transformation, a sub-dataset is presented below.</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>              cpi_tmp cashr_tmp
@@ -422,36 +422,36 @@ p(\Sigma|Y,X)&amp;\sim IW_{N}(\overline{S}, \overline{v})
 <span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">round</span>(<span class="fu">apply</span>(posterior.sample.draws<span class="sc">$</span>A.posterior, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, mean),<span class="dv">6</span>))         <span class="co"># posterior draw A</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>          [,1]      [,2]      [,3]      [,4]      [,5]      [,6]      [,7]
-[1,] -0.000743 -0.070248  0.002013  0.004851  0.002973  0.007241  0.042804
-[2,]  0.983434  0.149945  0.000974  0.005279  0.059050 -0.008663  0.024748
-[3,]  0.002535  0.736214 -0.003785  0.013360 -0.237149  0.002128 -0.158599
-[4,]  0.005177 -0.101403  0.005367  0.006208 -0.290556  0.026807  0.092750
-[5,] -0.006448 -0.071092  0.017976 -0.007614 -0.048662  0.087347  0.121471
-[6,]  0.002338 -0.075168 -0.002564 -0.003830  0.158969  0.025872 -0.198880
+[1,] -0.000748 -0.070125  0.002009  0.004841  0.002972  0.007261  0.042474
+[2,]  0.983504  0.146328  0.000917  0.005051  0.060809 -0.008815  0.026697
+[3,]  0.002523  0.735846 -0.003798  0.013358 -0.236735  0.002086 -0.158922
+[4,]  0.005141 -0.095488  0.005044  0.006581 -0.289015  0.025010  0.088584
+[5,] -0.006450 -0.077689  0.017808 -0.007683 -0.046170  0.087291  0.122991
+[6,]  0.002328 -0.074828 -0.002611 -0.003846  0.159498  0.025927 -0.199410
           [,8]      [,9]     [,10]
-[1,]  0.010310  0.015953 -0.083014
-[2,]  0.017082  0.035330  0.251647
-[3,]  0.014543  0.013496 -0.016601
-[4,]  0.010652 -0.026196  0.470364
-[5,]  0.035005  0.051422  0.614056
-[6,] -0.021868 -0.009085 -0.071842</code></pre>
+[1,]  0.010290  0.015921 -0.083221
+[2,]  0.017018  0.034315  0.243705
+[3,]  0.014493  0.013711 -0.017536
+[4,]  0.010572 -0.025172  0.469963
+[5,]  0.035587  0.052455  0.612928
+[6,] -0.021863 -0.009067 -0.072539</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">round</span>(<span class="fu">apply</span>(posterior.sample.draws<span class="sc">$</span>Sigma.posterior, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, mean),<span class="dv">6</span>))       <span class="co"># posterior draw sigma</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>          [,1]      [,2]      [,3]      [,4]      [,5]      [,6]      [,7]
-[1,]  0.000034  0.000159  0.000007  0.000019 -0.000369 -0.000055 -0.000002
-[2,]  0.000159  0.076997  0.000334  0.000318 -0.009825  0.001176 -0.003738
-[3,]  0.000007  0.000334  0.000067  0.000039 -0.001006  0.000079  0.000329
-[4,]  0.000019  0.000318  0.000039  0.000121 -0.001092 -0.000040 -0.000303
-[5,] -0.000369 -0.009825 -0.001006 -0.001092  0.044768 -0.001145 -0.005574
-[6,] -0.000055  0.001176  0.000079 -0.000040 -0.001145  0.001521  0.001698
+[1,]  0.000034  0.000160  0.000007  0.000019 -0.000369 -0.000054 -0.000002
+[2,]  0.000160  0.076891  0.000331  0.000315 -0.009795  0.001174 -0.003694
+[3,]  0.000007  0.000331  0.000067  0.000039 -0.001005  0.000079  0.000331
+[4,]  0.000019  0.000315  0.000039  0.000120 -0.001090 -0.000040 -0.000303
+[5,] -0.000369 -0.009795 -0.001005 -0.001090  0.044754 -0.001140 -0.005552
+[6,] -0.000054  0.001174  0.000079 -0.000040 -0.001140  0.001521  0.001707
           [,8]      [,9]     [,10]
-[1,] -0.000002 -0.000010  0.000659
-[2,] -0.000603 -0.001292  0.005973
-[3,]  0.000038  0.000016  0.002388
-[4,]  0.000019  0.000013  0.002834
-[5,] -0.000948  0.000440 -0.051620
-[6,]  0.000148  0.000225  0.001477</code></pre>
+[1,] -0.000002 -0.000010  0.000658
+[2,] -0.000603 -0.001279  0.005878
+[3,]  0.000038  0.000016  0.002387
+[4,]  0.000019  0.000013  0.002830
+[5,] -0.000946  0.000442 -0.051554
+[6,]  0.000148  0.000226  0.001481</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>), <span class="at">mar=</span><span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">2</span>,<span class="dv">2</span>))</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.ts</span>(posterior.sample.draws<span class="sc">$</span>A.posterior[<span class="dv">2</span>,<span class="dv">1</span>,], <span class="at">xlab =</span> <span class="st">"Simulation times S"</span>, <span class="at">ylab =</span> <span class="st">"CPI"</span>, <span class="at">col =</span> <span class="st">"darkblue"</span>)    </span>
@@ -473,7 +473,7 @@ p(\Sigma|Y,X)&amp;\sim IW_{N}(\overline{S}, \overline{v})
 </section>
 <section id="model-extension" class="level3">
 <h3 class="anchored" data-anchor-id="model-extension">Model Extension</h3>
-<p>The model extension applied in this research report is to build hierarchical model. The inverse gamma 2 distribution on the Minnesota shrinkage parameter kappa <span class="math inline">\(k\)</span> is introduced and specified below.</p>
+<p>The model extension applied in this research report is to build a hierarchical model. The inverse gamma 2 distribution on the Minnesota shrinkage parameter kappa <span class="math inline">\(k\)</span> is introduced and specified below.</p>
 <span class="math display">\[\begin{align}
 p(A,\Sigma, k |Y,X) &amp;\propto L(Y,X|A,\Sigma)p(A,\Sigma, k)\\
 &amp;\propto L(Y,X|A,\Sigma)p(A |\Sigma, k)p(\Sigma)p(k)
@@ -584,40 +584,40 @@ p(k |Y,X, A,\Sigma) &amp;\sim IG2(\overline{S_{k}}, \overline{v_{k}} ) \\
 <span id="cb15-51"><a href="#cb15-51" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">round</span>(<span class="fu">apply</span>(posterior.ext<span class="sc">$</span>A.posterior.exten[,,(S1<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span>total_S], <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, mean),<span class="dv">6</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>          [,1]      [,2]      [,3]      [,4]      [,5]      [,6]      [,7]
-[1,] -0.000745 -0.069192  0.001160  0.004208  0.016104  0.008743  0.038578
-[2,]  0.940944  0.607433  0.003072  0.014644  0.151280 -0.027432  0.163912
-[3,]  0.002865  0.735629 -0.004159  0.014328 -0.242045 -0.000697 -0.169678
-[4,]  0.016432 -0.550306  0.016462  0.018695 -0.883380  0.091669  0.287494
-[5,] -0.016600 -0.004688  0.065086 -0.027080 -0.295537  0.311020  0.643398
-[6,]  0.002791 -0.048236 -0.001736 -0.003610  0.119115  0.026231 -0.207416
+[1,] -0.000747 -0.069003  0.001163  0.004219  0.016231  0.008755  0.038234
+[2,]  0.941306  0.626597  0.002667  0.014059  0.151170 -0.027335  0.170567
+[3,]  0.002864  0.734939 -0.004171  0.014321 -0.241214 -0.000808 -0.170047
+[4,]  0.016954 -0.546208  0.016073  0.019081 -0.876210  0.089789  0.294630
+[5,] -0.016867 -0.006666  0.064764 -0.027741 -0.286956  0.309890  0.644702
+[6,]  0.002789 -0.047463 -0.001759 -0.003623  0.119160  0.026109 -0.207535
           [,8]      [,9]     [,10]
-[1,]  0.009331  0.017683 -0.122377
-[2,]  0.053475  0.107959  0.881396
-[3,]  0.013851  0.012748 -0.007498
-[4,]  0.047279 -0.085489  1.730802
-[5,]  0.120152  0.165785  2.178655
-[6,] -0.021677 -0.006926 -0.003577</code></pre>
+[1,]  0.009299  0.017721 -0.122348
+[2,]  0.054136  0.107320  0.866403
+[3,]  0.013937  0.012758 -0.007402
+[4,]  0.045832 -0.088139  1.721248
+[5,]  0.119460  0.164028  2.167794
+[6,] -0.021627 -0.007111 -0.004346</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">round</span>(<span class="fu">apply</span>(posterior.ext<span class="sc">$</span>Sigma.posterior.exten[,,(S1<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span>total_S], <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, mean),<span class="dv">6</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>          [,1]      [,2]      [,3]      [,4]      [,5]      [,6]      [,7]
-[1,]  0.000030  0.000149  0.000006  0.000019 -0.000318 -0.000050 -0.000010
-[2,]  0.000149  0.073056  0.000306  0.000305 -0.008407  0.000984 -0.003524
-[3,]  0.000006  0.000306  0.000063  0.000038 -0.000944  0.000074  0.000325
-[4,]  0.000019  0.000305  0.000038  0.000115 -0.001042 -0.000030 -0.000274
-[5,] -0.000318 -0.008407 -0.000944 -0.001042  0.041814 -0.001115 -0.005620
-[6,] -0.000050  0.000984  0.000074 -0.000030 -0.001115  0.001411  0.001595
+[1,]  0.000030  0.000148  0.000006  0.000019 -0.000319 -0.000050 -0.000011
+[2,]  0.000148  0.073120  0.000306  0.000303 -0.008366  0.000992 -0.003526
+[3,]  0.000006  0.000306  0.000063  0.000038 -0.000944  0.000074  0.000324
+[4,]  0.000019  0.000303  0.000038  0.000115 -0.001040 -0.000030 -0.000276
+[5,] -0.000319 -0.008366 -0.000944 -0.001040  0.041809 -0.001109 -0.005568
+[6,] -0.000050  0.000992  0.000074 -0.000030 -0.001109  0.001412  0.001590
           [,8]      [,9]     [,10]
-[1,]  0.000002 -0.000002  0.000602
-[2,] -0.000657 -0.001487  0.004673
-[3,]  0.000033  0.000009  0.002226
-[4,]  0.000018  0.000010  0.002701
-[5,] -0.000858  0.000526 -0.048252
-[6,]  0.000133  0.000166  0.001502</code></pre>
+[1,]  0.000001 -0.000002  0.000604
+[2,] -0.000662 -0.001492  0.004606
+[3,]  0.000033  0.000009  0.002222
+[4,]  0.000018  0.000010  0.002695
+[5,] -0.000862  0.000519 -0.048184
+[6,]  0.000133  0.000166  0.001485</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">mean</span>(posterior.ext<span class="sc">$</span>k.posterior.exten[(S1<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span>total_S]),<span class="dv">6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 4.321478</code></pre>
+<pre><code>[1] 4.315169</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>), <span class="at">mar=</span><span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">2</span>,<span class="dv">2</span>))</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.ts</span>(posterior.ext<span class="sc">$</span>A.posterior.exten[<span class="dv">2</span>,<span class="dv">1</span>,(S1<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span>total_S], <span class="at">xlab =</span> <span class="st">"Simulation times S"</span>, <span class="at">ylab =</span> <span class="st">"CPI.exten"</span>, <span class="at">col =</span> <span class="st">"darkblue"</span>)   </span>
@@ -670,32 +670,32 @@ E |X  &amp;\sim MN_{T \times 10 } (\textbf{0}_{T\times 10}, \Sigma , diag(\sigma
 <span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">round</span>(<span class="fu">apply</span>(posterior.heter<span class="sc">$</span>A[,,(S1<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span>total_S], <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, mean),<span class="dv">6</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>          [,1]      [,2]      [,3]      [,4]      [,5]      [,6]      [,7]
-[1,]  0.000332 -0.065311  0.002240  0.005227  0.007821  0.008716  0.037059
-[2,]  0.890855  1.637352  0.018280 -0.016282  0.831142  0.093346  0.602919
-[3,]  0.004753  0.750874 -0.006219  0.012506 -0.101572 -0.002247 -0.186210
-[4,]  0.034978 -0.377760  0.003441  0.087644 -1.462164  0.145770  0.428260
-[5,] -0.047007 -1.332848  0.068540 -0.108985 -0.019365  0.502183  1.900900
-[6,]  0.001051 -0.170756 -0.001873 -0.003092  0.204389  0.013566 -0.084760
+[1,]  0.000359 -0.063812  0.002227  0.005298  0.006623  0.008864  0.039055
+[2,]  0.886072  1.717236  0.019125 -0.016867  0.861058  0.102988  0.649507
+[3,]  0.004813  0.754217 -0.006341  0.012506 -0.100923 -0.002378 -0.184558
+[4,]  0.037018 -0.393082  0.003764  0.090263 -1.484179  0.156154  0.387146
+[5,] -0.048810 -1.349363  0.071096 -0.112205  0.014621  0.502764  1.946705
+[6,]  0.001399 -0.171558 -0.001936 -0.002711  0.205518  0.012723 -0.088446
           [,8]      [,9]     [,10]
-[1,]  0.017123  0.027171  0.000631
-[2,]  0.112387  0.237436  0.744664
-[3,]  0.011007  0.006294 -0.008908
-[4,]  0.032454 -0.477110  0.800901
-[5,]  0.287586  0.599190  0.891249
-[6,] -0.014719 -0.018641 -0.024438</code></pre>
+[1,]  0.017265  0.027290  0.000575
+[2,]  0.108764  0.244145  0.790907
+[3,]  0.010723  0.006256 -0.008293
+[4,]  0.037091 -0.477378  0.852114
+[5,]  0.294254  0.596660  0.916551
+[6,] -0.014349 -0.016890 -0.027389</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">round</span>(<span class="fu">apply</span>(posterior.heter<span class="sc">$</span>Sigma[,,(S1<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span>total_S], <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, mean),<span class="dv">6</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>       [,1]      [,2]   [,3]   [,4]      [,5]     [,6]      [,7]     [,8]
-[1,]  1e-06 -0.000003  0e+00  0e+00 -0.000003 -2.0e-06 -0.000007 -1.0e-06
-[2,] -3e-06  0.001726  0e+00 -5e-06 -0.000172  3.5e-05 -0.000137 -3.6e-05
+[1,]  1e-06 -0.000003  0e+00  0e+00 -0.000003 -2.0e-06 -0.000008 -1.0e-06
+[2,] -3e-06  0.001721  0e+00 -5e-06 -0.000170  3.5e-05 -0.000135 -3.7e-05
 [3,]  0e+00  0.000000  1e-06  0e+00 -0.000004  2.0e-06  0.000008  0.0e+00
-[4,]  0e+00 -0.000005  0e+00  3e-06 -0.000001 -2.0e-06 -0.000007 -1.0e-06
-[5,] -3e-06 -0.000172 -4e-06 -1e-06  0.001021 -3.8e-05 -0.000267 -6.0e-06
-[6,] -2e-06  0.000035  2e-06 -2e-06 -0.000038  4.6e-05  0.000027  1.0e-06
+[4,]  0e+00 -0.000005  0e+00  3e-06 -0.000002 -2.0e-06 -0.000007 -1.0e-06
+[5,] -3e-06 -0.000170 -4e-06 -2e-06  0.001026 -3.8e-05 -0.000262 -6.0e-06
+[6,] -2e-06  0.000035  2e-06 -2e-06 -0.000038  4.6e-05  0.000029  1.0e-06
          [,9]    [,10]
 [1,] -1.0e-06  0.0e+00
-[2,] -3.5e-05  2.9e-05
+[2,] -3.5e-05  2.7e-05
 [3,]  0.0e+00  1.0e-06
 [4,] -2.0e-06  1.0e-06
 [5,]  1.1e-05  2.0e-06
@@ -703,31 +703,31 @@ E |X  &amp;\sim MN_{T \times 10 } (\textbf{0}_{T\times 10}, \Sigma , diag(\sigma
 </div>
 <div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">mean</span>(posterior.heter<span class="sc">$</span>kappa[(S1<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span>total_S]), <span class="dv">6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 332.97</code></pre>
+<pre><code>[1] 345.6772</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">apply</span>(posterior.heter<span class="sc">$</span>sigma2[,(S1<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span>total_S], <span class="dv">1</span>, mean),<span class="dv">6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>  [1]   13219.253   16579.473   70467.427  191465.641   11570.722  117198.482
-  [7]   38430.921   51645.210   37371.977   27802.522   52296.798    3680.192
- [13]   75798.302   49696.013   21730.682   71915.475   68615.572   27536.902
- [19]   36063.626   30007.057   19965.739   44737.779   53328.360   85230.643
- [25]   84903.256   65579.722   50483.616    4702.135   55386.019   69557.032
- [31]   29016.892    5328.768   79463.512  170170.364   13230.756  172428.322
- [37]  100463.154   94098.095   43070.985   35421.887   37787.987   26477.899
- [43]   53801.118   61986.413    8213.066   73307.557   37404.540   39904.104
- [49]   48559.783   21118.778   13842.842   28903.472   13896.538   23630.653
- [55]   29038.825   19232.309    1961.061   11570.454   43378.375   27999.823
- [61]   31020.490   19067.867   15598.262   16490.335    3957.434  106279.963
- [67]    9646.350  167424.448  174607.067  185310.941  107692.665  151332.516
- [73]    5555.602  111789.836   60101.946   25413.570   50632.193   28102.979
- [79]    1587.134    5387.022   40901.292   25575.394   18165.794   18644.959
- [85]   22103.371    6307.391   17521.329   23174.361    2718.395   26893.646
- [91]   25407.054   28406.443   23279.300   12513.572   21726.967    6799.506
- [97]   25706.541   16544.363   33008.800   25769.185    1696.638   11716.436
-[103]    9853.665    8285.573    8759.053   13975.251   13644.757   16744.444
-[109]   17926.057    3364.225   45409.954   14173.292   78093.747 1890113.907
-[115] 2399511.965 1000935.266  476923.330  380843.905  227706.634  359978.123
-[121]  227018.893   43962.523   39902.387    5301.252</code></pre>
+<pre><code>  [1]   30495.534   18892.709   71769.087  154197.158   23601.884  112930.066
+  [7]   29354.646   72419.665   36650.430   28930.364   41619.482   17836.154
+ [13]   82915.491   93566.262    8055.010   57798.397   35762.949   34082.566
+ [19]   14080.109   32209.403   17039.674   34264.766   51579.319   62240.404
+ [25]   30354.354   44556.138   60847.765   22564.475   71825.467   69708.037
+ [31]   24301.140   13403.632   53240.003  194131.066   22237.192  227305.426
+ [37]  113423.142   62586.400   35949.818   31129.073   36459.654   19332.046
+ [43]   40231.047  126055.231    7269.440   65595.193   13834.832   63354.227
+ [49]   29874.376   24339.275   18061.553   20231.220   13973.487   11692.499
+ [55]   19116.936   17336.127    2109.119   15282.805   33253.563   18282.463
+ [61]   30147.633   25204.325   26292.417   27271.957   10890.185  124861.931
+ [67]   17744.178  204145.146  105822.613   49947.835  112194.772  108334.362
+ [73]    7661.104   87486.206   66023.546   20329.376   28293.046   25539.987
+ [79]    1721.208   13627.116   38695.679   67792.445   18438.710   15881.808
+ [85]   27777.879    3067.584   28271.439   21363.445    3541.170   27910.057
+ [91]   14109.627   24823.547   13140.436   46452.746    4802.867    9221.557
+ [97]   38818.658   61015.504   33806.841   29147.083    4290.789    9815.997
+[103]    8488.053   12988.822   14365.493   15744.475   11396.789   14464.990
+[109]   29726.851   21007.344   51555.971   15851.383   67085.705 2253763.394
+[115]  840946.650  983487.645  527395.935  248643.079  211923.169  330508.585
+[121]  132886.029   39835.486  101454.668    6252.248</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>), <span class="at">mar=</span><span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">2</span>,<span class="dv">2</span>))</span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot.ts</span>(posterior.heter<span class="sc">$</span>A[<span class="dv">2</span>,<span class="dv">1</span>,(S1<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span>total_S], <span class="at">xlab =</span> <span class="st">"Simulation times S"</span>, <span class="at">ylab =</span> <span class="st">"CPI.heter"</span>, <span class="at">col =</span> <span class="st">"darkblue"</span>) </span>
@@ -751,9 +751,9 @@ E |X  &amp;\sim MN_{T \times 10 } (\textbf{0}_{T\times 10}, \Sigma , diag(\sigma
 <p><img src="index_files/figure-html/heteroskedasticity 1-3.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>After introducing the Stochastic Volatility conditional heteroskedasticity in the model, it increases the variability of all parameters in general, however the major characteristics still preserve.</p>
+<p>After introducing the conditional heteroskedasticity in the model, it increases the variability of all parameters in general, however the major characteristics still preserve.</p>
 <ul>
-<li><p>The coefficient of the inflation still concentrates between 0.8 to 1, however many small outlines from 0.2 to 0.5 are picked up in the simulation. The trace plot of the variance of the inflation indicates more outliers than those we can find in the basic and extended model; however it’s less dispersed, proved by the narrower histogram.</p></li>
+<li><p>The coefficient of the inflation still concentrates between 0.8 to 1, however many small outlines from 0.2 to 0.5 are picked up in the simulation. The trace plot of the variance of the inflation indicates more outliers than those we can find in the basic and extended models; however it’s less dispersed, proved by the narrower histogram.</p></li>
 <li><p>Similar findings can be seen in the cash rate and kappa. There are more outliers, however, overall less dispersed as per histogram.</p></li>
 <li><p>A worth noting plot is the heteroskedasticity variance <span class="math inline">\(\sigma_{T}^{2}\)</span>. It’s clear that the variance is not constant. It has some high variance at time 0, 40, 70 and 110, corresponding to year 1990, 2000, 2008 and 2020. Not surprisingly, there was recession, or GFC or like most recently the COVID-19 happening, which drives the high volatility in the economy and the market. This plot is within expectation and worth adding into the model for capturing the time-varying variance.</p></li>
 </ul>
@@ -887,7 +887,7 @@ E |X  &amp;\sim MN_{T \times 10 } (\textbf{0}_{T\times 10}, \Sigma , diag(\sigma
 </div>
 <p>The <span class="math inline">\(h=12\)</span> steps ahead line plot is displayed above.</p>
 <p>Given the inflation data used in the model is log differences, thus each data point means the quarterly inflation rate. I transformed the data by summing up the past 4 consecutive data points together for every single data point to get an annualised figure for each period. Taking a look at the plot, we can see as at 2023 Quarter 1, the annual inflation rate is over 6%; based on our forecasting, the annual inflation rate is going to gradually decrease during 2023, and reaching at the target level 2% at 2023 Quarter 4. Thereafter, the annual inflation will keep decreasing. It will turn to increase again after it reaches 0 in 2024 to 2025.</p>
-<p>The cash rate is transformed to represent the annual cash rate at each quarter, rather than the cash rate movements. According to the forecasts, the cash rate would slightly increase after the 3.31% reported on 2023 Quarter 1, then keeps decreasing all the way, reaching at the lowest, around 1% in 2025.</p>
+<p>The cash rate is transformed to represent the annual cash rate at each quarter, rather than the cash rate movements. According to the forecasts, the cash rate would slightly increase after the 3.31% reported on 2023 Quarter 1, then keeps decreasing all the way, reaching the lowest, around 1% in 2025.</p>
 <p>3D with density intervals for the inflation and cash rate are plotted below. The quarterly inflation rate and cash rate change don’t seem to vary much in the next 3 years, the bounded confidence interval (i.e.&nbsp;green shaded area) is not wide as well. However, the accumulative effect by adding the changes to generate the annualised rate does turn thing around as explained above. The different height of the intervals mean how certain the prediction is, as it goes further into the future, the interval become more wider and dispersed, resulting from the increased uncertainty.</p>
 <div class="cell">
 <div class="cell-output-display">
@@ -964,7 +964,7 @@ E |X  &amp;\sim MN_{T \times 10 } (\textbf{0}_{T\times 10}, \Sigma , diag(\sigma
 <p><img src="index_files/figure-html/forecasting on extended model-2.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>A view of the plots above, the overall trends in the next 3 years are very similar in both basic and extended model. Only that the inflation rate would return to the target level a bit early than what’s forecasted in the basic model; however there is no significant difference. The forecasts of the annual cash rate is similar in both model, just that the lowest point is relatively lower, below 0.50%, in the extended model.</p>
+<p>A view of the plots above, the overall trends in the next 3 years are very similar in both the basic and extended models. Only that the inflation rate would return to the target level a bit early than what’s forecasted in the basic model; however there is no significant difference. The forecasts of the annual cash rate is similar in both models, just that the lowest point is relatively lower, below 0.50%, in the extended model.</p>
 <p>The below 3D plots doesn’t have many differences. Just the confidence intervals for the inflation is narrowed and every density is higher than it’s in the basic model, which indicates the extended model might have a higher certainty in predicting the inflation.</p>
 <div class="cell">
 <div class="cell-output-display">
@@ -1041,8 +1041,8 @@ E |X  &amp;\sim MN_{T \times 10 } (\textbf{0}_{T\times 10}, \Sigma , diag(\sigma
 <p><img src="index_files/figure-html/forecasting heteroskedasticity-2.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Like in the basic and extended model, the heteroskedasticity model gives the prediction that the annual inflation will return to the target level before the start of year 2024 as well. However, it predicts the inflation will decrease way more below 0 than the other two models, indicating the economy would experience downturn in 2024 and 2025. This discrepancy is likely due to the time-varying volatility introduced in this model. The time dependence of the dropping inflation lasts longer and the high volatility in the inflation movements in the past period remains high in the following periods, therefore the annual inflation dropped deeper in 2024.</p>
-<p>The forecasts on the annual cash rate remains consistent among three models.</p>
+<p>Like in the basic and extended models, the heteroskedasticity model gives the prediction that the annual inflation will return to the target level before the start of year 2024 as well. However, it predicts the inflation will decrease way more below 0 than the other two models, indicating the economy would experience downturn in 2024 and 2025. This discrepancy is likely due to the time-varying volatility introduced in this model. The time dependence of the dropping inflation lasts longer and the high volatility in the inflation movements in the past period remains high in the following periods, therefore the annual inflation dropped deeper in 2024.</p>
+<p>The forecasts on the annual cash rate in general remains consistent among three models.</p>
 <p>3D density is plotted below for reference. It looks quite different than what we see in the basic and extended models. The densities are very sharp and concentrated around the point estimates. As we forecast further into the future, the densities do not become dispersed, whereas it preserves the similar shape as in the near periods. This may result from the varying column variance replaced each time in estimating <span class="math inline">\(A\)</span> and <span class="math inline">\(\Sigma\)</span>, hence each <span class="math inline">\(\Sigma\)</span> contains more information. When forecasting into the future, it increases the certainty.</p>
 <div class="cell">
 <div class="cell-output-display">
@@ -1052,12 +1052,12 @@ E |X  &amp;\sim MN_{T \times 10 } (\textbf{0}_{T\times 10}, \Sigma , diag(\sigma
 <p>Interactive versions of the above 3D plots are provided below to allow access to alternative vantage points.</p>
 <div class="cell">
 <div class="cell-output-display">
-<div class="plotly html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-8dc05b702c8a53629620" style="width:100%;height:464px;"></div>
-<script type="application/json" data-for="htmlwidget-8dc05b702c8a53629620">{"x":{"visdat":{"340445a976cf":["function () ","plotlyVisDat"]},"cur_data":"340445a976cf","attrs":{"340445a976cf":{"y":[1,2,3,4,5,6,7,8,9,10,11,12],"x":[-3.29873452842936,-2.03596160089096,-0.773188673352555,0.489584254185849,1.75235718172425,3.01513010926266,4.27790303680106,5.54067596433946,6.80344889187787],"z":[[0,0,0,0.791908013065625,0,0,0,0,0],[0,0,0,0.791908013065625,0,0,0,0,0],[0,0,0,0.791908013065625,0,0,0,0,0],[0,0,0,0.791908013065625,0,0,0,0,0],[0,0,0,0.791908013065625,0,0,0,0,0],[0,0,0.000211175470150834,0.791696837595475,0,0,0,0,0],[0,0,0.000651124366298403,0.791256888699327,0,0,0,0,0],[0,0,0.00119666099752139,0.790711352068104,0,0,0,0,0],[0,0,0.00225253834827556,0.78965547471735,0,0,0,0,0],[0,0,0.00353718912502646,0.788353225984753,1.75979558459028e-05,0,0,0,0],[1.75979558459028e-05,3.51959116918056e-05,0.00524419084207903,0.786558234488471,5.27938675377084e-05,0,0,0,0],[1.75979558459028e-05,1.75979558459028e-05,0.0069335946032857,0.784798438903881,0.000105587735075417,1.75979558459028e-05,0,0,1.75979558459028e-05]],"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"surface","colors":["#05386B","#8EE4AF","#EDF5E1"],"inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"scene":{"xaxis":{"title":"cpi"},"yaxis":{"title":"h-step forecast"},"zaxis":{"title":"density"}},"title":"CPI forecast densities","hovermode":"closest","showlegend":false,"legend":{"yanchor":"top","y":0.5}},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"colorbar":{"title":"","ticklen":2,"len":0.5,"lenmode":"fraction","y":1,"yanchor":"top"},"colorscale":[["0","rgba(5,56,107,1)"],["0.0416666666666667","rgba(28,69,113,1)"],["0.0833333333333333","rgba(42,81,119,1)"],["0.125","rgba(54,95,125,1)"],["0.166666666666667","rgba(65,109,130,1)"],["0.208333333333333","rgba(76,123,136,1)"],["0.25","rgba(86,137,142,1)"],["0.291666666666667","rgba(95,151,148,1)"],["0.333333333333333","rgba(105,166,153,1)"],["0.375","rgba(114,181,159,1)"],["0.416666666666667","rgba(124,197,164,1)"],["0.458333333333333","rgba(133,212,170,1)"],["0.5","rgba(142,228,175,1)"],["0.541666666666667","rgba(151,230,179,1)"],["0.583333333333333","rgba(159,231,183,1)"],["0.625","rgba(168,233,187,1)"],["0.666666666666667","rgba(176,234,191,1)"],["0.708333333333333","rgba(184,236,196,1)"],["0.75","rgba(192,237,200,1)"],["0.791666666666667","rgba(199,238,204,1)"],["0.833333333333333","rgba(207,240,208,1)"],["0.875","rgba(215,241,212,1)"],["0.916666666666667","rgba(222,242,217,1)"],["0.958333333333333","rgba(230,244,221,1)"],["1","rgba(237,245,225,1)"]],"showscale":true,"y":[1,2,3,4,5,6,7,8,9,10,11,12],"x":[-3.29873452842936,-2.03596160089096,-0.773188673352555,0.489584254185849,1.75235718172425,3.01513010926266,4.27790303680106,5.54067596433946,6.80344889187787],"z":[[0,0,0,0.791908013065625,0,0,0,0,0],[0,0,0,0.791908013065625,0,0,0,0,0],[0,0,0,0.791908013065625,0,0,0,0,0],[0,0,0,0.791908013065625,0,0,0,0,0],[0,0,0,0.791908013065625,0,0,0,0,0],[0,0,0.000211175470150834,0.791696837595475,0,0,0,0,0],[0,0,0.000651124366298403,0.791256888699327,0,0,0,0,0],[0,0,0.00119666099752139,0.790711352068104,0,0,0,0,0],[0,0,0.00225253834827556,0.78965547471735,0,0,0,0,0],[0,0,0.00353718912502646,0.788353225984753,1.75979558459028e-05,0,0,0,0],[1.75979558459028e-05,3.51959116918056e-05,0.00524419084207903,0.786558234488471,5.27938675377084e-05,0,0,0,0],[1.75979558459028e-05,1.75979558459028e-05,0.0069335946032857,0.784798438903881,0.000105587735075417,1.75979558459028e-05,0,0,1.75979558459028e-05]],"type":"surface","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<div class="plotly html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-43a75ec33cb16000c080" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-43a75ec33cb16000c080">{"x":{"visdat":{"4f40161e3c89":["function () ","plotlyVisDat"]},"cur_data":"4f40161e3c89","attrs":{"4f40161e3c89":{"y":[1,2,3,4,5,6,7,8,9,10,11,12],"x":[-5.05527848685123,-3.08597193420686,-1.11666538156249,0.852641171081884,2.82194772372625,4.79125427637062,6.76056082901499,8.72986738165936,10.6991739343037],"z":[[0,0,0,0.50779295821527,0,0,0,0,0],[0,0,0,0.50779295821527,0,0,0,0,0],[0,0,0,0.50779295821527,0,0,0,0,0],[0,0,0,0.50779295821527,0,0,0,0,0],[0,0,4.51371518413573e-05,0.507747821063429,0,0,0,0,0],[0,0,0.000270822911048144,0.507522135304222,0,0,0,0,0],[0,0,0.000665772989660021,0.50712718522561,0,0,0,0,0],[0,0,0.00127512453951834,0.506517833675752,0,0,0,0,0],[0,0,0.00204245612082142,0.505750502094449,0,0,0,0,0],[0,0,0.00335143352422078,0.504430240403089,1.12842879603393e-05,0,0,0,0],[1.12842879603393e-05,3.3852863881018e-05,0.00417518654532555,0.503561350230143,1.12842879603393e-05,0,0,0,0],[1.12842879603393e-05,3.3852863881018e-05,0.00569856541997136,0.502026687067537,0,1.12842879603393e-05,0,0,1.12842879603393e-05]],"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"surface","colors":["#05386B","#8EE4AF","#EDF5E1"],"inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"scene":{"xaxis":{"title":"cpi"},"yaxis":{"title":"h-step forecast"},"zaxis":{"title":"density"}},"title":"CPI forecast densities","hovermode":"closest","showlegend":false,"legend":{"yanchor":"top","y":0.5}},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"colorbar":{"title":"","ticklen":2,"len":0.5,"lenmode":"fraction","y":1,"yanchor":"top"},"colorscale":[["0","rgba(5,56,107,1)"],["0.0416666666666667","rgba(28,69,113,1)"],["0.0833333333333333","rgba(42,81,119,1)"],["0.125","rgba(54,95,125,1)"],["0.166666666666667","rgba(65,109,130,1)"],["0.208333333333333","rgba(76,123,136,1)"],["0.25","rgba(86,137,142,1)"],["0.291666666666667","rgba(95,151,148,1)"],["0.333333333333333","rgba(105,166,153,1)"],["0.375","rgba(114,181,159,1)"],["0.416666666666667","rgba(124,197,164,1)"],["0.458333333333333","rgba(133,212,170,1)"],["0.5","rgba(142,228,175,1)"],["0.541666666666667","rgba(151,230,179,1)"],["0.583333333333333","rgba(159,231,183,1)"],["0.625","rgba(168,233,187,1)"],["0.666666666666667","rgba(176,234,191,1)"],["0.708333333333333","rgba(184,236,196,1)"],["0.75","rgba(192,237,200,1)"],["0.791666666666667","rgba(199,238,204,1)"],["0.833333333333333","rgba(207,240,208,1)"],["0.875","rgba(215,241,212,1)"],["0.916666666666667","rgba(222,242,217,1)"],["0.958333333333333","rgba(230,244,221,1)"],["1","rgba(237,245,225,1)"]],"showscale":true,"y":[1,2,3,4,5,6,7,8,9,10,11,12],"x":[-5.05527848685123,-3.08597193420686,-1.11666538156249,0.852641171081884,2.82194772372625,4.79125427637062,6.76056082901499,8.72986738165936,10.6991739343037],"z":[[0,0,0,0.50779295821527,0,0,0,0,0],[0,0,0,0.50779295821527,0,0,0,0,0],[0,0,0,0.50779295821527,0,0,0,0,0],[0,0,0,0.50779295821527,0,0,0,0,0],[0,0,4.51371518413573e-05,0.507747821063429,0,0,0,0,0],[0,0,0.000270822911048144,0.507522135304222,0,0,0,0,0],[0,0,0.000665772989660021,0.50712718522561,0,0,0,0,0],[0,0,0.00127512453951834,0.506517833675752,0,0,0,0,0],[0,0,0.00204245612082142,0.505750502094449,0,0,0,0,0],[0,0,0.00335143352422078,0.504430240403089,1.12842879603393e-05,0,0,0,0],[1.12842879603393e-05,3.3852863881018e-05,0.00417518654532555,0.503561350230143,1.12842879603393e-05,0,0,0,0],[1.12842879603393e-05,3.3852863881018e-05,0.00569856541997136,0.502026687067537,0,1.12842879603393e-05,0,0,1.12842879603393e-05]],"type":"surface","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
 </div>
 <div class="cell-output-display">
-<div class="plotly html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-2afd8a149fa6ee69adbd" style="width:100%;height:464px;"></div>
-<script type="application/json" data-for="htmlwidget-2afd8a149fa6ee69adbd">{"x":{"visdat":{"34041e4d1297":["function () ","plotlyVisDat"]},"cur_data":"34041e4d1297","attrs":{"34041e4d1297":{"y":[1,2,3,4,5,6,7,8,9,10,11,12],"x":[-73.146496435334,-46.787209236957,-20.42792203858,5.93136515979705,32.2906523581741,58.6499395565511,85.0092267549281,111.368513953305,137.727801151682],"z":[[0,0,0,0.0379372929349004,0,0,0,0,0],[0,0,0,0.0379372929349004,0,0,0,0,0],[0,0,0,0.0379372929349004,0,0,0,0,0],[0,0,0,0.0379372929349004,0,0,0,0,0],[0,0,5.90135667876229e-06,0.0379313915782217,0,0,0,0,0],[0,0,1.6861019082178e-05,0.0379204319158182,0,0,0,0,0],[0,0,3.2878987210247e-05,0.0379044139476902,0,0,0,0,0],[0,0,5.14261082006428e-05,0.0378841807247916,1.6861019082178e-06,0,0,0,0],[0,0,7.92467896862365e-05,0.0378521447885354,5.90135667876229e-06,0,0,0,0],[0,1.6861019082178e-06,0.000106224420217721,0.0378167366484628,1.18027133575246e-05,8.43050954108899e-07,0,0,0],[0,4.21525477054449e-06,0.00013741730551975,0.0377762702026656,1.60179681280691e-05,2.5291528623267e-06,8.43050954108898e-07,0,0],[2.52915286232669e-06,8.43050954108898e-06,0.000180412904179304,0.0377012386677499,3.54081400725737e-05,5.90135667876229e-06,2.52915286232669e-06,0,8.43050954108899e-07]],"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"surface","colors":["#05386B","magenta2","#EDF5E1"],"inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"scene":{"xaxis":{"title":"cash rate"},"yaxis":{"title":"h-step forecast"},"zaxis":{"title":"density"}},"title":"Cash rate forecast densities","hovermode":"closest","showlegend":false,"legend":{"yanchor":"top","y":0.5}},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"colorbar":{"title":"","ticklen":2,"len":0.5,"lenmode":"fraction","y":1,"yanchor":"top"},"colorscale":[["0","rgba(5,56,107,1)"],["0.0416666666666667","rgba(40,58,117,1)"],["0.0833333333333333","rgba(62,60,127,1)"],["0.125","rgba(81,61,138,1)"],["0.166666666666667","rgba(99,62,148,1)"],["0.208333333333333","rgba(116,61,159,1)"],["0.25","rgba(134,60,170,1)"],["0.291666666666667","rgba(151,58,181,1)"],["0.333333333333333","rgba(168,55,192,1)"],["0.375","rgba(185,49,203,1)"],["0.416666666666667","rgba(203,42,215,1)"],["0.458333333333333","rgba(220,29,226,1)"],["0.5","rgba(238,0,238,1)"],["0.541666666666667","rgba(240,59,237,1)"],["0.583333333333333","rgba(242,85,237,1)"],["0.625","rgba(243,106,236,1)"],["0.666666666666667","rgba(244,125,235,1)"],["0.708333333333333","rgba(245,142,234,1)"],["0.75","rgba(245,158,233,1)"],["0.791666666666667","rgba(245,173,232,1)"],["0.833333333333333","rgba(245,188,231,1)"],["0.875","rgba(243,203,230,1)"],["0.916666666666667","rgba(242,217,228,1)"],["0.958333333333333","rgba(240,231,227,1)"],["1","rgba(237,245,225,1)"]],"showscale":true,"y":[1,2,3,4,5,6,7,8,9,10,11,12],"x":[-73.146496435334,-46.787209236957,-20.42792203858,5.93136515979705,32.2906523581741,58.6499395565511,85.0092267549281,111.368513953305,137.727801151682],"z":[[0,0,0,0.0379372929349004,0,0,0,0,0],[0,0,0,0.0379372929349004,0,0,0,0,0],[0,0,0,0.0379372929349004,0,0,0,0,0],[0,0,0,0.0379372929349004,0,0,0,0,0],[0,0,5.90135667876229e-06,0.0379313915782217,0,0,0,0,0],[0,0,1.6861019082178e-05,0.0379204319158182,0,0,0,0,0],[0,0,3.2878987210247e-05,0.0379044139476902,0,0,0,0,0],[0,0,5.14261082006428e-05,0.0378841807247916,1.6861019082178e-06,0,0,0,0],[0,0,7.92467896862365e-05,0.0378521447885354,5.90135667876229e-06,0,0,0,0],[0,1.6861019082178e-06,0.000106224420217721,0.0378167366484628,1.18027133575246e-05,8.43050954108899e-07,0,0,0],[0,4.21525477054449e-06,0.00013741730551975,0.0377762702026656,1.60179681280691e-05,2.5291528623267e-06,8.43050954108898e-07,0,0],[2.52915286232669e-06,8.43050954108898e-06,0.000180412904179304,0.0377012386677499,3.54081400725737e-05,5.90135667876229e-06,2.52915286232669e-06,0,8.43050954108899e-07]],"type":"surface","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<div class="plotly html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-5b74a3aa1e752651b485" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-5b74a3aa1e752651b485">{"x":{"visdat":{"4f40269d6b8f":["function () ","plotlyVisDat"]},"cur_data":"4f40269d6b8f","attrs":{"4f40269d6b8f":{"y":[1,2,3,4,5,6,7,8,9,10,11,12],"x":[-295.278486710491,-237.944876100354,-180.611265490217,-123.27765488008,-65.9440442699429,-8.61043365980586,48.7231769503312,106.056787560468,163.390398170605],"z":[[0,0,0,0,0,0.0174417761127919,0,0,0],[0,0,0,0,0,0.0174417761127919,0,0,0],[0,0,0,0,0,0.0174417761127919,0,0,0],[0,0,0,0,0,0.0174417761127919,0,0,0],[0,0,0,0,0,0.0174417761127919,0,0,0],[0,0,0,0,0,0.0174417761127919,0,0,0],[0,0,0,0,0,0.0174413885177671,3.87595024728709e-07,0,0],[0,0,0,0,0,0.0174413885177671,3.87595024728709e-07,0,0],[0,0,0,0,3.87595024728708e-07,0.0174382877575693,3.10076019782967e-06,0,0],[0,0,0,0,1.55038009891483e-06,0.0174328614272231,6.97671044511676e-06,3.87595024728708e-07,0],[0,0,3.87595024728708e-07,0,2.71316517310096e-06,0.0174270475018522,1.08526606924038e-05,3.87595024728708e-07,3.87595024728708e-07],[7.75190049457417e-07,0,0,7.75190049457417e-07,3.87595024728709e-06,0.0174161948411598,1.8604561186978e-05,1.16278507418612e-06,3.87595024728708e-07]],"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"surface","colors":["#05386B","magenta2","#EDF5E1"],"inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"scene":{"xaxis":{"title":"cash rate"},"yaxis":{"title":"h-step forecast"},"zaxis":{"title":"density"}},"title":"Cash rate forecast densities","hovermode":"closest","showlegend":false,"legend":{"yanchor":"top","y":0.5}},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"colorbar":{"title":"","ticklen":2,"len":0.5,"lenmode":"fraction","y":1,"yanchor":"top"},"colorscale":[["0","rgba(5,56,107,1)"],["0.0416666666666667","rgba(40,58,117,1)"],["0.0833333333333333","rgba(62,60,127,1)"],["0.125","rgba(81,61,138,1)"],["0.166666666666667","rgba(99,62,148,1)"],["0.208333333333333","rgba(116,61,159,1)"],["0.25","rgba(134,60,170,1)"],["0.291666666666667","rgba(151,58,181,1)"],["0.333333333333333","rgba(168,55,192,1)"],["0.375","rgba(185,49,203,1)"],["0.416666666666667","rgba(203,42,215,1)"],["0.458333333333333","rgba(220,29,226,1)"],["0.5","rgba(238,0,238,1)"],["0.541666666666667","rgba(240,59,237,1)"],["0.583333333333333","rgba(242,85,237,1)"],["0.625","rgba(243,106,236,1)"],["0.666666666666667","rgba(244,125,235,1)"],["0.708333333333333","rgba(245,142,234,1)"],["0.75","rgba(245,158,233,1)"],["0.791666666666667","rgba(245,173,232,1)"],["0.833333333333333","rgba(245,188,231,1)"],["0.875","rgba(243,203,230,1)"],["0.916666666666667","rgba(242,217,228,1)"],["0.958333333333333","rgba(240,231,227,1)"],["1","rgba(237,245,225,1)"]],"showscale":true,"y":[1,2,3,4,5,6,7,8,9,10,11,12],"x":[-295.278486710491,-237.944876100354,-180.611265490217,-123.27765488008,-65.9440442699429,-8.61043365980586,48.7231769503312,106.056787560468,163.390398170605],"z":[[0,0,0,0,0,0.0174417761127919,0,0,0],[0,0,0,0,0,0.0174417761127919,0,0,0],[0,0,0,0,0,0.0174417761127919,0,0,0],[0,0,0,0,0,0.0174417761127919,0,0,0],[0,0,0,0,0,0.0174417761127919,0,0,0],[0,0,0,0,0,0.0174417761127919,0,0,0],[0,0,0,0,0,0.0174413885177671,3.87595024728709e-07,0,0],[0,0,0,0,0,0.0174413885177671,3.87595024728709e-07,0,0],[0,0,0,0,3.87595024728708e-07,0.0174382877575693,3.10076019782967e-06,0,0],[0,0,0,0,1.55038009891483e-06,0.0174328614272231,6.97671044511676e-06,3.87595024728708e-07,0],[0,0,3.87595024728708e-07,0,2.71316517310096e-06,0.0174270475018522,1.08526606924038e-05,3.87595024728708e-07,3.87595024728708e-07],[7.75190049457417e-07,0,0,7.75190049457417e-07,3.87595024728709e-06,0.0174161948411598,1.8604561186978e-05,1.16278507418612e-06,3.87595024728708e-07]],"type":"surface","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </section>
