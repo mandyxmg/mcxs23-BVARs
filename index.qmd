@@ -239,7 +239,7 @@ tail(variables_all[,1:2] )
 
 Interpretations on the variables of interest,
 
--   $cpi_{t}$: at March 2023, there's a $1.37\%$ increase in the inflation in a quarter time. We can sum up the last 4 observations in the above table to get the annual inflation rate. which gives $6.79\%$.
+-   $cpi_{t}$: at March 2023, there's a 1.37% increase in the inflation in a quarter time. We can sum up the last 4 observations in the above table to get the annual inflation rate. which gives 6.79%.
 
 -   $cashr_{t}$: at March 2023, there are 49 basis points increase in the cash rate target in a quarter time since December 2022.
 
@@ -921,7 +921,7 @@ for (s in 1:S){
   }
 }
 
-# transform cpi into annual cpi and plot
+# transform cpi into annual cpi, and plot
 par(mfrow=c(1,1), mar=c(4,4,2,2))
 point.cpi.h            = ts(round(apply(Y.h[,1,],1,mean),6))
 cpi.data.h             = c(y[,1], point.cpi.h)
@@ -936,27 +936,32 @@ annual.cpi             = xts(annual.cpi, seq(as.Date("1992-03-01"), by = "quarte
 plot.ts(annual.cpi, lwd=2, col="black", xaxt='n')
 axis(1,c(0,40,80,112,125, nrow(y)+h),c("1992","2002","2012","2020","2023", ""))
 abline(h=0.02, col="red", lty = 2)
-abline(v=125, col = "blue")
-abline(v=129, col = "blue")
+abline(v=125, col = "blue", lwd=1.5)
+abline(v=129, col = "orange", lwd=1.5)
+legend(98, 0.075, legend=c("Y2023", "Y2024"), col=c("blue", "orange"), lty=1, cex=0.8)
 
-# cash rate plot
+# transform cash rate to not stand for a change, but an annual rate, and plot
 point.cr.h             = ts(round(apply(Y.h[,2,],1,mean),6))
-cr.data.h              = c(y[,2], point.cpi.h)
-qrter.cr.change        = xts(cr.data.h, seq(as.Date("1991-06-01"), by = "quarter", length.out = length(cr.data.h)))
-
-plot.ts(qrter.cr.change, lwd=2, col="black", xaxt='n')
-axis(1,c(3,43,83,115,128, nrow(y)+h),c("1992","2002","2012","2020","2023",""))
+point.cr.h             = xts(point.cr.h, seq(as.Date("2023-06-01"), by = "quarter", length.out = length(point.cr.h)))
+annual.cr              = c(cashr_tmp[1:131], point.cr.h)
+for (i in 1: 12) {
+     annual.cr[131+i]  =  as.numeric(annual.cr[130+i]) + as.numeric(point.cr.h[i])
+}
+plot.ts(annual.cr/100, lwd=2, col="black", xaxt='n')
+axis(1,c(8,48,88,120,131, nrow(y)+h),c("1992","2002","2012","2020","2023",""))
 abline(h=0, col="red", lty = 2)
-abline(v=128, col = "blue")
+abline(v=131, col = "blue", lwd=1.5)
+abline(v=140, col = "orange", lwd=1.5)
+legend(103, 0.14, legend=c("Y2023", "Y2025"), col=c("blue", "orange"), lty=1, cex=0.8)
 ```
 
 The $h=12$ steps ahead line plot is displayed above.
 
-Given the inflation data used in the model is log differences, thus each data point means the quarterly inflation rate. I transformed the data by summing up the past 4 consecutive data points together for every single data point to get an annualised figure for each period. Taking a look at the plot, we can see as at 2023 Quarter 1, the annual inflation rate is over 6%; based on our forecasting, the annual inflation rate is going to gradually decrease during 2023, and reaching at the target level 2% at 2023 Quarter 4. Thereafter, the annual inflation will keep decreasing. It will turn to increase again after it reaches 0 in year 2024 to 2025.
+Given the inflation data used in the model is log differences, thus each data point means the quarterly inflation rate. I transformed the data by summing up the past 4 consecutive data points together for every single data point to get an annualised figure for each period. Taking a look at the plot, we can see as at 2023 Quarter 1, the annual inflation rate is over 6%; based on our forecasting, the annual inflation rate is going to gradually decrease during 2023, and reaching at the target level 2% at 2023 Quarter 4. Thereafter, the annual inflation will keep decreasing. It will turn to increase again after it reaches 0 in 2024 to 2025.
 
-The cash rate plot indicate the cash rate movements as compared to the prior quarter. According to the forecasts, since 2023 Quarter 1, the cash rate increased 49 basis points to $3.31\%$, it looks like that RBA will maintain the current cash rate level without increasing or decreasing the cash rate in the next 3 years, supported by the flat line at 0 as shown in above graph.
+The cash rate is transformed to represent the annual cash rate at each quarter, rather than the cash rate movements. According to the forecasts, the cash rate would slightly increase after the 3.31% reported on 2023 Quarter 1, then keeps decreasing all the way, reaching at the lowest, around 1% in 2025. 
 
-3D with density intervals for the inflation and cash rate are plotted below. Both of them illustrate the similar ideas. The quarterly inflation rate and cash rate don't seem to vary much in the next 3 years, the bounded confidence interval (i.e. green shaded area) is not wide as well. The different height of the intervals mean how certain the prediction is, as it goes further into the future, the interval become more wider and dispersed, resulting from the increased uncertainty.
+3D with density intervals for the inflation and cash rate are plotted below. The quarterly inflation rate and cash rate change don't seem to vary much in the next 3 years, the bounded confidence interval (i.e. green shaded area) is not wide as well. However, the accumulative effect by adding the changes to generate the annualised rate does turn thing around as explained above. The different height of the intervals mean how certain the prediction is, as it goes further into the future, the interval become more wider and dispersed, resulting from the increased uncertainty.
 
 ```{r forecasting plot basic model}
 #| echo: false
@@ -1060,36 +1065,41 @@ for (s in 1:S){
   }
 }
 
-# transform cpi into annual cpi and plot
+# transform cpi into annual cpi, and plot
 par(mfrow=c(1,1), mar=c(4,4,2,2))
-point.cpi.h            = ts(round(apply(Y.h.ext[,1,],1,mean),6))
-cpi.data.h             = c(y[,1], point.cpi.h)
-cpi.data.h             = rev(cpi.data.h)
-annual.cpi             = matrix(NA, length(cpi.data.h)-3 , 1)
+point.cpi.h                = ts(round(apply(Y.h.ext[,1,],1,mean),6))
+cpi.data.h                 = c(y[,1], point.cpi.h)
+cpi.data.h                 = rev(cpi.data.h)
+annual.cpi                 = matrix(NA, length(cpi.data.h)-3 , 1)
 for (i in 1: (length(cpi.data.h)-3)) {
-     annual.cpi[i]     = sum (cpi.data.h[i: (i+3)])
+     annual.cpi[i]         = sum (cpi.data.h[i: (i+3)])
 }
-annual.cpi             = ts(rev(annual.cpi))
-annual.cpi             = xts(annual.cpi, seq(as.Date("1992-03-01"), by = "quarter", length.out = length(annual.cpi)))
+annual.cpi                 = ts(rev(annual.cpi))
+annual.cpi                 = xts(annual.cpi, seq(as.Date("1992-03-01"), by = "quarter", length.out = length(annual.cpi)))
 
 plot.ts(annual.cpi, lwd=2, col="black", xaxt='n')
 axis(1,c(0,40,80,112,125, nrow(y)+h),c("1992","2002","2012","2020","2023", ""))
 abline(h=0.02, col="red", lty = 2)
-abline(v=125, col = "blue")
-abline(v=129, col = "blue")
+abline(v=125, col = "blue", lwd=1.5)
+abline(v=129, col = "orange", lwd=1.5)
+legend(98, 0.075, legend=c("Y2023", "Y2024"), col=c("blue", "orange"), lty=1, cex=0.8)
 
-# cash rate plot
-point.cr.h             = ts(round(apply(Y.h.ext[,2,],1,mean),6))
-cr.data.h              = c(y[,2], point.cpi.h)
-qrter.cr.change        = xts(cr.data.h, seq(as.Date("1991-06-01"), by = "quarter", length.out = length(cr.data.h)))
-
-plot.ts(qrter.cr.change, lwd=2, col="black", xaxt='n')
-axis(1,c(3,43,83,115,128, nrow(y)+h),c("1992","2002","2012","2020","2023", ""))
+# transform cash rate to not stand for a change, but an annual rate, and plot
+point.cr.h                 = ts(round(apply(Y.h.ext[,2,],1,mean),6))
+point.cr.h                 = xts(point.cr.h, seq(as.Date("2023-06-01"), by = "quarter", length.out = length(point.cr.h)))
+annual.cr                  = c(cashr_tmp[1:131], point.cr.h)
+for (i in 1: 12) {
+     annual.cr[131+i]  =  as.numeric(annual.cr[130+i]) + as.numeric(point.cr.h[i])
+}
+plot.ts(annual.cr/100, lwd=2, col="black", xaxt='n')
+axis(1,c(8,48,88,120,131, nrow(y)+h),c("1992","2002","2012","2020","2023",""))
 abline(h=0, col="red", lty = 2)
-abline(v=128, col = "blue")
+abline(v=131, col = "blue", lwd=1.5)
+abline(v=140, col = "orange", lwd=1.5)
+legend(103, 0.14, legend=c("Y2023", "Y2025"), col=c("blue", "orange"), lty=1, cex=0.8)
 ```
 
-A view of the plots above, the overall trends in the next 3 years are very similar in both basic and extended model. Only that the inflation rate would return to the target level a bit early than what's forecasted in the basic model; however there is no significant difference. The movement of cash rate is the same in both model.
+A view of the plots above, the overall trends in the next 3 years are very similar in both basic and extended model. Only that the inflation rate would return to the target level a bit early than what's forecasted in the basic model; however there is no significant difference. The forecasts of the annual cash rate is similar in both model, just that the lowest point is relatively lower, below 0.50%, in the extended model. 
 
 The below 3D plots doesn't have many differences. Just the confidence intervals for the inflation is narrowed and every density is higher than it's in the basic model, which indicates the extended model might have a higher certainty in predicting the inflation.
 
@@ -1186,38 +1196,43 @@ for (s in 1:S){
   }
 }
 
-# transform cpi into annual cpi and plot
+# transform cpi into annual cpi, and plot
 par(mfrow=c(1,1), mar=c(4,4,2,2))
-point.cpi.h            = ts(round(apply(Y.h.heter[,1,],1,mean),6))
-cpi.data.h             = c(y[,1], point.cpi.h)
-cpi.data.h             = rev(cpi.data.h)
-annual.cpi             = matrix(NA, length(cpi.data.h)-3 , 1)
+point.cpi.h                = ts(round(apply(Y.h.heter[,1,],1,mean),6))
+cpi.data.h                 = c(y[,1], point.cpi.h)
+cpi.data.h                 = rev(cpi.data.h)
+annual.cpi                 = matrix(NA, length(cpi.data.h)-3 , 1)
 for (i in 1: (length(cpi.data.h)-3)) {
-     annual.cpi[i]     = sum (cpi.data.h[i: (i+3)])
+     annual.cpi[i]         = sum (cpi.data.h[i: (i+3)])
 }
-annual.cpi             = ts(rev(annual.cpi))
-annual.cpi             = xts(annual.cpi, seq(as.Date("1992-03-01"), by = "quarter", length.out = length(annual.cpi)))
+annual.cpi                 = ts(rev(annual.cpi))
+annual.cpi                 = xts(annual.cpi, seq(as.Date("1992-03-01"), by = "quarter", length.out = length(annual.cpi)))
 
 plot.ts(annual.cpi, lwd=2, col="black", xaxt='n')
 axis(1,c(0,40,80,112,125, nrow(y)+h),c("1992","2002","2012","2020","2023", ""))
 abline(h=0.02, col="red", lty = 2)
-abline(v=125, col = "blue")
-abline(v=129, col = "blue")
+abline(v=125, col = "blue", lwd=1.5)
+abline(v=129, col = "orange", lwd=1.5)
+legend(98, 0.075, legend=c("Y2023", "Y2024"), col=c("blue", "orange"), lty=1, cex=0.8)
 
-# cash rate plot
-point.cr.h             = ts(round(apply(Y.h.heter[,2,],1,mean),6))
-cr.data.h              = c(y[,2], point.cpi.h)
-qrter.cr.change        = xts(cr.data.h, seq(as.Date("1991-06-01"), by = "quarter", length.out = length(cr.data.h)))
-
-plot.ts(qrter.cr.change, lwd=2, col="black", xaxt='n')
-axis(1,c(3,43,83,115,128, nrow(y)+h),c("1992","2002","2012","2020","2023", ""))
+# transform cash rate to not stand for a change, but an annual rate, and plot
+point.cr.h                 = ts(round(apply(Y.h.heter[,2,],1,mean),6))
+point.cr.h                 = xts(point.cr.h, seq(as.Date("2023-06-01"), by = "quarter", length.out = length(point.cr.h)))
+annual.cr                  = c(cashr_tmp[1:131], point.cr.h)
+for (i in 1: 12) {
+     annual.cr[131+i]  =  as.numeric(annual.cr[130+i]) + as.numeric(point.cr.h[i])
+}
+plot.ts(annual.cr/100, lwd=2, col="black", xaxt='n')
+axis(1,c(8,48,88,120,131, nrow(y)+h),c("1992","2002","2012","2020","2023",""))
 abline(h=0, col="red", lty = 2)
-abline(v=128, col = "blue")
+abline(v=131, col = "blue", lwd=1.5)
+abline(v=140, col = "orange", lwd=1.5)
+legend(103, 0.14, legend=c("Y2023", "Y2025"), col=c("blue", "orange"), lty=1, cex=0.8)
 ```
 
-Like in the basic and extended model, the heteroskedasticity model gives the prediction that the annual inflation will return to the target level before the start of year 2024 as well. However, it predicts the inflation will decrease way more below 0 than the other two models, indicating the economy would experience downturn in year 2024 and 2025. This discrepancy is likely due to the time-varying volatility introduced in this model. The time dependence of the dropping inflation lasts longer and the high volatility in the inflation movements in the past period remains high in the following periods, therefore the annual inflation dropped deeper in 2024.
+Like in the basic and extended model, the heteroskedasticity model gives the prediction that the annual inflation will return to the target level before the start of year 2024 as well. However, it predicts the inflation will decrease way more below 0 than the other two models, indicating the economy would experience downturn in 2024 and 2025. This discrepancy is likely due to the time-varying volatility introduced in this model. The time dependence of the dropping inflation lasts longer and the high volatility in the inflation movements in the past period remains high in the following periods, therefore the annual inflation dropped deeper in 2024.
 
-The forecasts on the cash rate remains consistent among three models.
+The forecasts on the annual cash rate remains consistent among three models.
 
 3D density is plotted below for reference. It looks quite different than what we see in the basic and extended models. The densities are very sharp and concentrated around the point estimates. As we forecast further into the future, the densities do not become dispersed, whereas it preserves the similar shape as in the near periods. This may result from the varying column variance replaced each time in estimating $A$ and $\Sigma$, hence each $\Sigma$ contains more information. When forecasting into the future, it increases the certainty.
 
@@ -1341,4 +1356,8 @@ plot_ly(y = yy.cr, x = x.cr, z=z.cr) %>%
 
 In this research project, we closely examined three Bayesian VARs models to forecast the variables of interest, namely the inflation $cpi_{t}$ and the cash rate $cashr_{t}$. We start from the basic model with simple Minnesota prior specifications to capture the features and dynamic relationships we found in our variables. We built a hierarchical model by imposing the Minnesota shrinkage hyperparameter kappa $k$ on top of the basic model. We enhanced the hierarchical model by introducing the stochastic volatilites. We conducted 12-step ahead forecasts on each of the models and compared the results.
 
-The forecasts provided by the three models are similar and consistent in general with some small discrepancies. All three models provide forecasts that the annual inflation rate in three years time will be around the target level $2\%$ or less. The annual inflation in Australia will return to the annual target $2-3\%$ no later than the start of 2024. The cash rate will remain unchanged, at around $3.31\%$ as of March 2023 in the next three years.
+The forecasts provided by the three models are similar and consistent in general with some small discrepancies. All three models provide forecasts that the annual inflation rate in three years time will be around the target level 2% or less. The annual inflation in Australia will return to the annual target 2-3% no later than the start of 2024. The annual cash rate will be constantly decreasing from the reported 3.31% in 2023 Quarter 1 to the lowest, around 0.50-1%, in 2025. 
+
+
+
+
