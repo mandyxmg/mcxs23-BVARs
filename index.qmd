@@ -14,7 +14,7 @@ format:
 
 ## Objectives & Motivations
 
-Following the pandemic, inflation in Australia has rapidly increased and peaked at 7.8 percent in 2022 Quarter 4, becoming the highest rate in over 30 years. This inflationary environment risks negative economic consequences such as reduced consumer purchasing power, as well as distortions in spending behaviour and investment decisions. This is a problem not only for central banks mandated to protect price stability and sustainable economic growth, but also for individuals who need to be informed about how prices (which directly affects our daily lives) will likely evolve in the future.
+Following the pandemic of COVID-19, the inflation in Australia has rapidly increased and peaked at 7.8 percent in 2022 Quarter 4, becoming the highest rate in over 30 years. This inflationary environment risks negative economic consequences such as reduced consumer purchasing power, as well as distortions in spending behaviour and investment decisions. This is a problem not only for central banks mandated to protect price stability and sustainable economic growth, but also for individuals who need to be informed about how prices (which directly affects our daily lives) will likely evolve in the future.
 
 The objective of this research project is to forecast inflation using its dynamic interaction with 9 other economic variables, using Bayesian VARs models.
 
@@ -160,7 +160,7 @@ ts.plot(variables_all[,i], main =colnames(variables_all)[i],
 }
 ```
 
-Most of the variables display an upward trend, with $cashr_{t}$ and $unem_{t}$ trending downwards. This strong trending pattern indicates that all the variables might integrate at 1, to know which, a formal Augmented Dickey-Fuller (ADF) test is conducted in the following section. $corpft_{t}$ and $arri_{t}$ exhibit the seasonality effect with a large drop at around Year 2021, which is a reflection of the start of the pandemic.
+Most of the variables display an upward trend, with $cashr_{t}$ and $unem_{t}$ trending downwards. This strong trending pattern indicates that all the variables might integrate at 1, to know which, a formal Augmented Dickey-Fuller (ADF) test is conducted in the following section. $corpft_{t}$ and $arri_{t}$ exhibit the seasonality effect with a large drop at around 2021, reflecting the start of the pandemic.
 
 The autocorrelation (ACF) plot is presented below.
 
@@ -226,7 +226,7 @@ According to the ADF test results, all the variables are integrated at order 1, 
 
 To keep consistency, the first difference is taken on all variables. The whole dataset is now stationary with only $cpi_{t}$ being integrated at 1. We will address this in the Minnesota prior setup in the later section.
 
-After the transformation, sub-dataset is presented as a reference. 
+After the transformation, a sub-dataset is presented below. 
 
 ```{r variables transformation}
 #| echo: false
@@ -425,7 +425,7 @@ The trace plots and histograms posterior draws on $A$ and $\Sigma$ are presented
 
 ### Model Extension
 
-The model extension applied in this research report is to build hierarchical model. The inverse gamma 2 distribution on the Minnesota shrinkage parameter kappa $k$ is introduced and specified below.
+The model extension applied in this research report is to build a hierarchical model. The inverse gamma 2 distribution on the Minnesota shrinkage parameter kappa $k$ is introduced and specified below.
 
 ```{=tex}
 \begin{align}
@@ -781,9 +781,9 @@ hist(posterior.heter$kappa[(S1+1):total_S], xlab = "kappa.heter", col = "darkgre
 plot.ts(apply(posterior.heter$sigma2[,(S1+1):total_S], 1, mean), ylab = "sigma2.heter")
 ```
 
-After introducing the Stochastic Volatility conditional heteroskedasticity in the model, it increases the variability of all parameters in general, however the major characteristics still preserve.
+After introducing the conditional heteroskedasticity in the model, it increases the variability of all parameters in general, however the major characteristics still preserve.
 
--   The coefficient of the inflation still concentrates between 0.8 to 1, however many small outlines from 0.2 to 0.5 are picked up in the simulation. The trace plot of the variance of the inflation indicates more outliers than those we can find in the basic and extended model; however it's less dispersed, proved by the narrower histogram.
+-   The coefficient of the inflation still concentrates between 0.8 to 1, however many small outlines from 0.2 to 0.5 are picked up in the simulation. The trace plot of the variance of the inflation indicates more outliers than those we can find in the basic and extended models; however it's less dispersed, proved by the narrower histogram.
 
 -   Similar findings can be seen in the cash rate and kappa. There are more outliers, however, overall less dispersed as per histogram.
 
@@ -959,7 +959,7 @@ The $h=12$ steps ahead line plot is displayed above.
 
 Given the inflation data used in the model is log differences, thus each data point means the quarterly inflation rate. I transformed the data by summing up the past 4 consecutive data points together for every single data point to get an annualised figure for each period. Taking a look at the plot, we can see as at 2023 Quarter 1, the annual inflation rate is over 6%; based on our forecasting, the annual inflation rate is going to gradually decrease during 2023, and reaching at the target level 2% at 2023 Quarter 4. Thereafter, the annual inflation will keep decreasing. It will turn to increase again after it reaches 0 in 2024 to 2025.
 
-The cash rate is transformed to represent the annual cash rate at each quarter, rather than the cash rate movements. According to the forecasts, the cash rate would slightly increase after the 3.31% reported on 2023 Quarter 1, then keeps decreasing all the way, reaching at the lowest, around 1% in 2025. 
+The cash rate is transformed to represent the annual cash rate at each quarter, rather than the cash rate movements. According to the forecasts, the cash rate would slightly increase after the 3.31% reported on 2023 Quarter 1, then keeps decreasing all the way, reaching the lowest, around 1% in 2025. 
 
 3D with density intervals for the inflation and cash rate are plotted below. The quarterly inflation rate and cash rate change don't seem to vary much in the next 3 years, the bounded confidence interval (i.e. green shaded area) is not wide as well. However, the accumulative effect by adding the changes to generate the annualised rate does turn thing around as explained above. The different height of the intervals mean how certain the prediction is, as it goes further into the future, the interval become more wider and dispersed, resulting from the increased uncertainty.
 
@@ -1099,7 +1099,7 @@ abline(v=140, col = "orange", lwd=1.5)
 legend(103, 0.14, legend=c("Y2023", "Y2025"), col=c("blue", "orange"), lty=1, cex=0.8)
 ```
 
-A view of the plots above, the overall trends in the next 3 years are very similar in both basic and extended model. Only that the inflation rate would return to the target level a bit early than what's forecasted in the basic model; however there is no significant difference. The forecasts of the annual cash rate is similar in both model, just that the lowest point is relatively lower, below 0.50%, in the extended model. 
+A view of the plots above, the overall trends in the next 3 years are very similar in both the basic and extended models. Only that the inflation rate would return to the target level a bit early than what's forecasted in the basic model; however there is no significant difference. The forecasts of the annual cash rate is similar in both models, just that the lowest point is relatively lower, below 0.50%, in the extended model. 
 
 The below 3D plots doesn't have many differences. Just the confidence intervals for the inflation is narrowed and every density is higher than it's in the basic model, which indicates the extended model might have a higher certainty in predicting the inflation.
 
@@ -1230,9 +1230,9 @@ abline(v=140, col = "orange", lwd=1.5)
 legend(103, 0.14, legend=c("Y2023", "Y2025"), col=c("blue", "orange"), lty=1, cex=0.8)
 ```
 
-Like in the basic and extended model, the heteroskedasticity model gives the prediction that the annual inflation will return to the target level before the start of year 2024 as well. However, it predicts the inflation will decrease way more below 0 than the other two models, indicating the economy would experience downturn in 2024 and 2025. This discrepancy is likely due to the time-varying volatility introduced in this model. The time dependence of the dropping inflation lasts longer and the high volatility in the inflation movements in the past period remains high in the following periods, therefore the annual inflation dropped deeper in 2024.
+Like in the basic and extended models, the heteroskedasticity model gives the prediction that the annual inflation will return to the target level before the start of year 2024 as well. However, it predicts the inflation will decrease way more below 0 than the other two models, indicating the economy would experience downturn in 2024 and 2025. This discrepancy is likely due to the time-varying volatility introduced in this model. The time dependence of the dropping inflation lasts longer and the high volatility in the inflation movements in the past period remains high in the following periods, therefore the annual inflation dropped deeper in 2024.
 
-The forecasts on the annual cash rate remains consistent among three models.
+The forecasts on the annual cash rate in general remains consistent among three models.
 
 3D density is plotted below for reference. It looks quite different than what we see in the basic and extended models. The densities are very sharp and concentrated around the point estimates. As we forecast further into the future, the densities do not become dispersed, whereas it preserves the similar shape as in the near periods. This may result from the varying column variance replaced each time in estimating $A$ and $\Sigma$, hence each $\Sigma$ contains more information. When forecasting into the future, it increases the certainty.
 
